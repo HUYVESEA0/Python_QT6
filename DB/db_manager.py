@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import logging
+import hashlib
 
 class DatabaseManager:
     """
@@ -8,10 +9,18 @@ class DatabaseManager:
     """
     def __init__(self, db_path="student_management.db"):
         """Khởi tạo kết nối đến cơ sở dữ liệu."""
-        # Tạo thư mục chứa database nếu chưa tồn tại
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        # Ensure db_path has a directory component
+        if os.path.dirname(db_path) == '':
+            # If no directory specified, use 'data' directory in the current directory
+            data_dir = os.path.join(os.getcwd(), "data")
+            os.makedirs(data_dir, exist_ok=True)
+            self.db_path = os.path.join(data_dir, db_path)
+        else:
+            # If directory is specified, ensure it exists
+            directory = os.path.dirname(db_path)
+            os.makedirs(directory, exist_ok=True)
+            self.db_path = db_path
         
-        self.db_path = db_path
         self.connection = None
         self.cursor = None
         
@@ -21,7 +30,7 @@ class DatabaseManager:
         # Tạo các bảng nếu chưa tồn tại
         self.create_tables()
         
-        logging.info(f"Đã khởi tạo kết nối đến cơ sở dữ liệu: {db_path}")
+        logging.info(f"Đã khởi tạo kết nối đến cơ sở dữ liệu: {self.db_path}")
 
     def connect(self):
         """Thiết lập kết nối đến cơ sở dữ liệu."""
@@ -86,6 +95,21 @@ class DatabaseManager:
                 FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
                 FOREIGN KEY (course_id) REFERENCES courses (course_id) ON DELETE CASCADE,
                 UNIQUE(student_id, course_id)
+            )
+            ''')
+            
+            # Bảng Người dùng (cho đăng nhập)
+            self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT,
+                email TEXT,
+                role TEXT,
+                is_active INTEGER DEFAULT 1,
+                created_date TEXT,
+                last_login TEXT
             )
             ''')
             
@@ -171,3 +195,55 @@ class DatabaseManager:
         except sqlite3.Error as e:
             logging.error(f"Lỗi khi xóa dữ liệu: {e}")
             return 0
+
+    def hash_password(self, password):
+        """
+        Mã hóa mật khẩu sử dụng SHA-256.
+        
+        Args:
+            password (str): Mật khẩu cần mã hóa
+            
+        Returns:
+            str: Chuỗi mật khẩu đã được mã hóa
+        """
+        return hashlib.sha256(password.encode()).hexdigest()
+    
+    def verify_password(self, password, password_hash):
+        """
+        Kiểm tra mật khẩu có khớp với mã hash không.
+        
+        Args:
+            password (str): Mật khẩu cần kiểm tra
+            password_hash (str): Mã hash đã lưu
+            
+        Returns:
+            bool: True nếu mật khẩu khớp, False nếu không
+        """
+        return self.hash_password(password) == password_hash
+    
+    def create_default_admin(self):
+        """
+        Tạo tài khoản admin mặc định nếu chưa tồn tại.
+        """
+        admin_exists = self.execute_query("SELECT COUNT(*) as count FROM users WHERE username = ?", ("admin",))
+        
+        if admin_exists[0]['count'] == 0:
+            # Tạo tài khoản admin với mật khẩu mặc định là "admin"
+            from datetime import datetime
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            
+            query = """
+            INSERT INTO users (username, password_hash, full_name, email, role, created_date)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """
+            
+            self.execute_insert(query, (
+                "admin",
+                self.hash_password("admin"),
+                "Administrator",
+                "admin@example.com",
+                "admin",
+                current_date
+            ))
+            
+            logging.info("Đã tạo tài khoản admin mặc định")

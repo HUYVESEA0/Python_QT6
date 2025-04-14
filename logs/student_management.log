@@ -1,0 +1,43 @@
+2025-04-14 18:15:38 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:15:53 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:16:15 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:20:34 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:20:34 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 18:20:34 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 18:20:34 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 18:20:34 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 18:20:34 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 18:20:41 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 18:20:41 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 18:20:41 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 18:20:41 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 18:20:41 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 18:20:41 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 18:21:10 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
+2025-04-14 18:21:10 - root - INFO - Ứng dụng đã đóng
+2025-04-14 18:38:09 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:38:09 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 18:38:09 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 18:38:09 - root - INFO - Đã khởi tạo UserController
+2025-04-14 18:38:09 - root - INFO - Đã tạo tài khoản admin mặc định
+2025-04-14 18:40:26 - root - WARNING - Mật khẩu không đúng cho người dùng: admin
+2025-04-14 18:40:29 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
+2025-04-14 18:41:30 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 18:41:30 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 18:41:30 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 18:41:30 - root - INFO - Đã khởi tạo UserController
+2025-04-14 18:41:38 - root - INFO - Người dùng đăng nhập thành công: admin
+2025-04-14 18:41:38 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo UserController
+2025-04-14 18:41:38 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 18:41:38 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 18:41:38 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 18:41:38 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 18:41:38 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 18:41:38 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 18:42:24 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
+2025-04-14 18:42:24 - root - INFO - Ứng dụng đã đóng

@@ -1,13 +1,15 @@
 import sys
 import os
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStatusBar,
-                             QMessageBox, QLabel, QToolBar, QWidget)
+                             QMessageBox, QLabel, QToolBar, QWidget,
+                             QMenu)
 from PyQt6.QtGui import QIcon, QPixmap, QAction  # QAction moved here from QtWidgets
 from PyQt6.QtCore import Qt, QSize
 from DB.db_manager import DatabaseManager
 from controllers.student_controller import StudentController
 from controllers.course_controller import CourseController
 from controllers.report_controller import ReportController
+from controllers.user_controller import UserController
 from views.student_view import StudentView
 from views.course_view import CourseView
 from views.enrollment_view import EnrollmentView
@@ -18,8 +20,11 @@ class MainWindow(QMainWindow):
     """
     Cửa sổ chính của ứng dụng quản lý sinh viên.
     """
-    def __init__(self):
+    def __init__(self, current_user=None):
         super().__init__()
+        
+        # Lưu thông tin người dùng đăng nhập
+        self.current_user = current_user
         
         # Khởi tạo cơ sở dữ liệu
         self.db_manager = DatabaseManager()
@@ -28,6 +33,7 @@ class MainWindow(QMainWindow):
         self.student_controller = StudentController(self.db_manager)
         self.course_controller = CourseController(self.db_manager)
         self.report_controller = ReportController(self.db_manager)
+        self.user_controller = UserController(self.db_manager)
         
         # Thiết lập giao diện
         self.init_ui()
@@ -64,6 +70,12 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         
+        # Hiển thị thông tin người dùng đăng nhập
+        if self.current_user:
+            user_info = f"Người dùng: {self.current_user.full_name} ({self.current_user.role})"
+            self.user_label = QLabel(user_info)
+            self.status_bar.addPermanentWidget(self.user_label)
+        
         # Hiển thị thông báo sẵn sàng
         self.status_label = QLabel("Hệ thống đã sẵn sàng")
         self.status_bar.addWidget(self.status_label)
@@ -76,6 +88,14 @@ class MainWindow(QMainWindow):
         
         # Menu Hệ thống
         system_menu = menu_bar.addMenu('&Hệ thống')
+        
+        # - Đổi mật khẩu
+        change_pwd_action = QAction('Đổi &mật khẩu', self)
+        change_pwd_action.setStatusTip('Thay đổi mật khẩu đăng nhập')
+        change_pwd_action.triggered.connect(self.change_password)
+        system_menu.addAction(change_pwd_action)
+        
+        system_menu.addSeparator()
         
         # - Thoát
         exit_action = QAction('&Thoát', self)
@@ -179,3 +199,52 @@ class MainWindow(QMainWindow):
             event.accept()
         else:
             event.ignore()
+    
+    def change_password(self):
+        """Hiển thị hộp thoại đổi mật khẩu."""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QDialogButtonBox
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Đổi mật khẩu")
+        layout = QVBoxLayout()
+        
+        form = QFormLayout()
+        old_password = QLineEdit()
+        old_password.setEchoMode(QLineEdit.EchoMode.Password)
+        new_password = QLineEdit()
+        new_password.setEchoMode(QLineEdit.EchoMode.Password)
+        confirm_password = QLineEdit()
+        confirm_password.setEchoMode(QLineEdit.EchoMode.Password)
+        
+        form.addRow("Mật khẩu cũ:", old_password)
+        form.addRow("Mật khẩu mới:", new_password)
+        form.addRow("Xác nhận mật khẩu:", confirm_password)
+        
+        layout.addLayout(form)
+        
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        
+        dialog.setLayout(layout)
+        
+        if dialog.exec():
+            old_pwd = old_password.text()
+            new_pwd = new_password.text()
+            confirm_pwd = confirm_password.text()
+            
+            if new_pwd != confirm_pwd:
+                QMessageBox.warning(self, "Lỗi", "Xác nhận mật khẩu không khớp!")
+                return
+            
+            if len(new_pwd) < 4:
+                QMessageBox.warning(self, "Lỗi", "Mật khẩu mới phải có ít nhất 4 ký tự!")
+                return
+            
+            if self.current_user:
+                success = self.user_controller.change_password(self.current_user.username, old_pwd, new_pwd)
+                if success:
+                    QMessageBox.information(self, "Thành công", "Đổi mật khẩu thành công!")
+                else:
+                    QMessageBox.warning(self, "Lỗi", "Mật khẩu cũ không đúng!")
