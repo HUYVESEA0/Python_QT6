@@ -219,3 +219,35 @@ NoneType: None
 2025-04-14 23:42:44 - root - INFO - Đã tạo bản sao lưu cơ sở dữ liệu tại: data\backups\student_management_20250414_234244.db
 2025-04-14 23:42:44 - root - INFO - Đã tối ưu hóa cơ sở dữ liệu
 2025-04-14 23:42:44 - root - INFO - Đã đóng kết nối đến cơ sở dữ liệu
+2025-04-14 23:54:41 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:54:41 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:54:41 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:54:41 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:54:48 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:54:48 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:54:48 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:54:48 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:54:48 - root - INFO - Kiểm tra toàn vẹn cơ sở dữ liệu: OK
+2025-04-14 23:54:48 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 23:54:48 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 23:54:48 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 23:54:48 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:54:48 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:54:48 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:54:48 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:54:48 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:54:49 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 23:54:49 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:54:49 - root - INFO - Notification: Buổi tối tốt lành, Administrator! Chào mừng bạn đến với Hệ thống Quản lý Sinh viên.
+2025-04-14 23:54:51 - root - INFO - Notification: Hệ thống hiện có 0 sinh viên và 0 khóa học.
+2025-04-14 23:54:58 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:54:58 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:55:01 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:55:01 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:55:02 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:55:02 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:55:05 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:55:05 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:55:14 - root - INFO - Đã tạo bản sao lưu cơ sở dữ liệu tại: data\backups\student_management_20250414_235514.db
+2025-04-14 23:55:14 - root - INFO - Đã tối ưu hóa cơ sở dữ liệu
+2025-04-14 23:55:14 - root - INFO - Đã đóng kết nối đến cơ sở dữ liệu
