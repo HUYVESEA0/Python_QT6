@@ -1,10 +1,10 @@
 import sys
 import os
-from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QAction, QStatusBar,
+from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStatusBar,
                              QMessageBox, QLabel, QToolBar, QWidget)
-from PyQt6.QtGui import QIcon, QPixmap
+from PyQt6.QtGui import QIcon, QPixmap, QAction  # QAction moved here from QtWidgets
 from PyQt6.QtCore import Qt, QSize
-from database.db_manager import DatabaseManager
+from DB.db_manager import DatabaseManager
 from controllers.student_controller import StudentController
 from controllers.course_controller import CourseController
 from controllers.report_controller import ReportController
