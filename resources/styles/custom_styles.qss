@@ -1,0 +1,132 @@
+/* Định nghĩa styles tùy chỉnh cho ứng dụng */
+
+/* Thẻ sinh viên trên Dashboard */
+QFrame[cssClass="student-card"] {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* Thông báo toast notification */
+QLabel[cssClass="notification"] {
+    border-radius: 6px;
+    padding: 10px 15px;
+    color: white;
+}
+
+QLabel[cssClass="notification-info"] {
+    background-color: #2979FF;
+}
+
+QLabel[cssClass="notification-success"] {
+    background-color: #00C853;
+}
+
+QLabel[cssClass="notification-warning"] {
+    background-color: #FFC107;
+    color: #333333;
+}
+
+QLabel[cssClass="notification-error"] {
+    background-color: #F44336;
+}
+
+/* Các nút tùy chỉnh */
+QPushButton[cssClass="btn-primary"] {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton[cssClass="btn-primary"]:hover {
+    background-color: #0069D9;
+}
+
+QPushButton[cssClass="btn-primary"]:pressed {
+    background-color: #0062CC;
+}
+
+QPushButton[cssClass="btn-success"] {
+    background-color: #28A745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton[cssClass="btn-success"]:hover {
+    background-color: #218838;
+}
+
+QPushButton[cssClass="btn-success"]:pressed {
+    background-color: #1E7E34;
+}
+
+QPushButton[cssClass="btn-danger"] {
+    background-color: #DC3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton[cssClass="btn-danger"]:hover {
+    background-color: #C82333;
+}
+
+QPushButton[cssClass="btn-danger"]:pressed {
+    background-color: #BD2130;
+}
+
+QPushButton[cssClass="btn-warning"] {
+    background-color: #FFC107;
+    color: #212529;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+}
+
+QPushButton[cssClass="btn-warning"]:hover {
+    background-color: #E0A800;
+}
+
+QPushButton[cssClass="btn-warning"]:pressed {
+    background-color: #D39E00;
+}
+
+/* Khung ảnh đại diện */
+QLabel[cssClass="photo-frame"] {
+    border: 2px solid #DEE2E6;
+    border-radius: 6px;
+    background-color: #F8F9FA;
+}
+
+/* Các khung báo cáo */
+QGroupBox[cssClass="report-box"] {
+    border: 1px solid #DEE2E6;
+    border-radius: 6px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+QGroupBox[cssClass="report-box"]::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Thanh tiêu đề báo cáo */
+QWidget[cssClass="report-header"] {
+    background-color: #F8F9FA;
+    border-bottom: 1px solid #DEE2E6;
+    padding: 10px;
+}
+
+/* Biểu đồ báo cáo */
+QWidget[cssClass="chart-container"] {
+    background-color: white;
+    border: 1px solid #DEE2E6;
+    border-radius: 6px;
+}

@@ -1,1 +1,9 @@
-PyQt6>=6.0.0
+PyQt6>=6.4.0
+cryptography>=39.0.0
+pillow>=9.4.0
+openpyxl>=3.0.10
+xlsxwriter>=3.0.9
+reportlab>=3.6.12
+pandas>=1.5.3
+pyjwt>=2.6.0
+matplotlib>=3.7.0

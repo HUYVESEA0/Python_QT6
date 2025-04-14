@@ -3,8 +3,18 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                             QTableWidget, QTableWidgetItem, QHeaderView, 
                             QMessageBox, QGroupBox, QTabWidget, QTextBrowser)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QColor
 import logging
+
+# Check if matplotlib is available
+try:
+    import matplotlib
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.figure import Figure
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
 
 class ReportView(QWidget):
     """
@@ -257,15 +267,39 @@ class ReportView(QWidget):
     
     def load_grade_distribution(self):
         """Tải phân phối điểm số và hiển thị trong bảng."""
-        grade_distribution = self.report_controller.get_grade_distribution()
-        
-        self.grades_table.setRowCount(0)
-        row = 0
-        for grade_range, count in grade_distribution.items():
-            self.grades_table.insertRow(row)
-            self.grades_table.setItem(row, 0, QTableWidgetItem(grade_range))
-            self.grades_table.setItem(row, 1, QTableWidgetItem(str(count)))
-            row += 1
+        try:
+            grade_distribution = self.report_controller.get_grade_distribution()
+            
+            self.grades_table.setRowCount(0)
+            row = 0
+            for grade_range, count in grade_distribution.items():
+                self.grades_table.insertRow(row)
+                self.grades_table.setItem(row, 0, QTableWidgetItem(str(grade_range)))
+                self.grades_table.setItem(row, 1, QTableWidgetItem(str(count)))
+                row += 1
+                
+            # Thêm mã màu cho các dòng trong bảng điểm
+            for row in range(self.grades_table.rowCount()):
+                grade_range = self.grades_table.item(row, 0).text()
+                if "A" in grade_range:
+                    self.grades_table.item(row, 0).setBackground(QColor(120, 230, 120)) # Xanh lá
+                    self.grades_table.item(row, 1).setBackground(QColor(120, 230, 120))
+                elif "B" in grade_range:
+                    self.grades_table.item(row, 0).setBackground(QColor(170, 240, 170)) # Xanh lá nhạt
+                    self.grades_table.item(row, 1).setBackground(QColor(170, 240, 170))
+                elif "C" in grade_range:
+                    self.grades_table.item(row, 0).setBackground(QColor(255, 255, 150)) # Vàng nhạt
+                    self.grades_table.item(row, 1).setBackground(QColor(255, 255, 150))
+                elif "D" in grade_range:
+                    self.grades_table.item(row, 0).setBackground(QColor(255, 200, 150)) # Cam nhạt
+                    self.grades_table.item(row, 1).setBackground(QColor(255, 200, 150))
+                elif "F" in grade_range:
+                    self.grades_table.item(row, 0).setBackground(QColor(255, 180, 180)) # Đỏ nhạt
+                    self.grades_table.item(row, 1).setBackground(QColor(255, 180, 180))
+                    
+        except Exception as e:
+            logging.error(f"Lỗi khi tải phân phối điểm: {e}")
+            QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu phân phối điểm: {str(e)}")
     
     def load_student_results(self):
         """Tải kết quả học tập của sinh viên và hiển thị."""
@@ -326,3 +360,24 @@ class ReportView(QWidget):
         except Exception as e:
             logging.error(f"Lỗi khi tải kết quả học tập: {e}")
             QMessageBox.warning(self, "Lỗi", f"Không thể tải kết quả học tập: {e}")
+
+    def load_data(self):
+        """Tải dữ liệu thống kê"""
+        # ...existing code...
+        
+        # Thêm vào cuối phương thức
+        # Thêm biểu đồ tỷ lệ đậu/rớt nếu có matplotlib
+        if HAS_MATPLOTLIB:
+            pass_fail_stats = self.report_controller.get_pass_fail_rate()
+            if pass_fail_stats and pass_fail_stats['total'] > 0:
+                self.pass_fail_chart.figure.clear()
+                ax = self.pass_fail_chart.figure.add_subplot(111)
+                
+                labels = ['Đạt', 'Không đạt']
+                sizes = [pass_fail_stats['passed'], pass_fail_stats['failed']]
+                colors = ['#4CAF50', '#F44336']
+                
+                ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+                ax.axis('equal')  # Equal aspect ratio ensures the pie chart is circular
+                ax.set_title("Tỷ lệ đạt/không đạt")
+                self.pass_fail_chart.canvas.draw()

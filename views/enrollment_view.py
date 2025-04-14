@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                             QMessageBox, QGroupBox, QSplitter, QDateEdit,
                             QDoubleSpinBox)
 from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QColor
 from datetime import datetime
 import logging
 
@@ -358,3 +359,79 @@ class EnrollmentView(QWidget):
         
         if not enrollments:
             QMessageBox.information(self, "Kết quả tìm kiếm", "Không tìm thấy kết quả nào!")
+    
+    def populate_enrollment_table(self, enrollments):
+        """
+        Điền dữ liệu đăng ký vào bảng.
+        
+        Args:
+            enrollments (list): Danh sách các đăng ký
+        """
+        # Tắt việc cập nhật giao diện để tăng hiệu suất
+        self.enrollment_table.setUpdatesEnabled(False)
+        self.enrollment_table.setSortingEnabled(False)
+        
+        # Lưu vị trí cuộn hiện tại
+        scrollbar = self.enrollment_table.verticalScrollBar()
+        scroll_position = scrollbar.value()
+        
+        # Xóa tất cả các dòng
+        self.enrollment_table.setRowCount(0)
+        
+        # Đặt số dòng mới
+        if enrollments:
+            self.enrollment_table.setRowCount(len(enrollments))
+            
+            for row, enrollment in enumerate(enrollments):
+                # ID đăng ký
+                id_item = QTableWidgetItem(str(enrollment.enrollment_id))
+                
+                # Mã sinh viên (có thể lấy tên sinh viên nếu có)
+                student_id_item = QTableWidgetItem(enrollment.student_id)
+                if hasattr(enrollment, 'student_name'):
+                    student_id_item.setToolTip(enrollment.student_name)
+                
+                # Mã khóa học (có thể lấy tên khóa học nếu có)
+                course_id_item = QTableWidgetItem(enrollment.course_id)
+                if hasattr(enrollment, 'course_name'):
+                    course_id_item.setToolTip(enrollment.course_name)
+                
+                # Ngày đăng ký
+                date_item = QTableWidgetItem(enrollment.enrollment_date)
+                
+                # Điểm số
+                grade = enrollment.grade if enrollment.grade is not None else ''
+                grade_item = QTableWidgetItem(str(grade))
+                
+                # Thiết lập màu nền cho điểm theo thang điểm
+                if enrollment.grade is not None:
+                    if enrollment.grade >= 8.5:
+                        grade_item.setBackground(QColor(120, 230, 120))  # A: Xanh lá đậm
+                    elif enrollment.grade >= 7.0:
+                        grade_item.setBackground(QColor(170, 240, 170))  # B: Xanh lá nhạt
+                    elif enrollment.grade >= 5.5:
+                        grade_item.setBackground(QColor(255, 255, 150))  # C: Vàng nhạt
+                    elif enrollment.grade >= 4.0:
+                        grade_item.setBackground(QColor(255, 200, 150))  # D: Cam nhạt
+                    else:
+                        grade_item.setBackground(QColor(255, 180, 180))  # F: Đỏ nhạt
+                
+                # Đặt các item vào bảng
+                self.enrollment_table.setItem(row, 0, id_item)
+                self.enrollment_table.setItem(row, 1, student_id_item)
+                self.enrollment_table.setItem(row, 2, course_id_item)
+                self.enrollment_table.setItem(row, 3, date_item)
+                self.enrollment_table.setItem(row, 4, grade_item)
+        
+        # Khôi phục tính năng cập nhật giao diện và vị trí cuộn
+        self.enrollment_table.setSortingEnabled(True)
+        self.enrollment_table.setUpdatesEnabled(True)
+        scrollbar.setValue(scroll_position)
+        
+        # Cập nhật tổng số đăng ký
+        self.update_enrollment_count()
+    
+    def update_enrollment_count(self):
+        """Cập nhật tổng số đăng ký hiển thị"""
+        count = self.enrollment_table.rowCount()
+        self.enrollment_count_label.setText(f"Tổng số đăng ký: {count}")

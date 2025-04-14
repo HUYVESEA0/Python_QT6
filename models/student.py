@@ -1,4 +1,7 @@
 from datetime import datetime
+import os
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtCore import Qt
 
 class Student:
     """
@@ -6,7 +9,7 @@ class Student:
     """
     def __init__(self, student_id="", full_name="", date_of_birth=None, 
                  gender="", email="", phone="", address="", 
-                 enrolled_date=None, status="Active"):
+                 enrolled_date=None, status="Active", photo_path=""):
         """
         Khởi tạo một đối tượng sinh viên.
         
@@ -20,6 +23,7 @@ class Student:
             address (str): Địa chỉ
             enrolled_date (str): Ngày nhập học (định dạng YYYY-MM-DD)
             status (str): Trạng thái của sinh viên (Active, Inactive, Graduated, etc.)
+            photo_path (str): Đường dẫn đến file ảnh đại diện
         """
         self.student_id = student_id
         self.full_name = full_name
@@ -30,6 +34,7 @@ class Student:
         self.address = address
         self.enrolled_date = enrolled_date if enrolled_date else datetime.now().strftime("%Y-%m-%d")
         self.status = status
+        self.photo_path = photo_path
 
     @classmethod
     def from_dict(cls, data):
@@ -51,7 +56,8 @@ class Student:
             phone=data.get('phone', ''),
             address=data.get('address', ''),
             enrolled_date=data.get('enrolled_date', ''),
-            status=data.get('status', 'Active')
+            status=data.get('status', 'Active'),
+            photo_path=data.get('photo_path', '')
         )
     
     def to_dict(self):
@@ -70,8 +76,34 @@ class Student:
             'phone': self.phone,
             'address': self.address,
             'enrolled_date': self.enrolled_date,
-            'status': self.status
+            'status': self.status,
+            'photo_path': self.photo_path
         }
+    
+    def get_photo(self, default_size=(100, 100)):
+        """
+        Lấy ảnh đại diện của sinh viên
+        
+        Args:
+            default_size (tuple): Kích thước (width, height) mặc định
+            
+        Returns:
+            QPixmap: Ảnh đại diện dạng QPixmap
+        """
+        if self.photo_path and os.path.exists(self.photo_path):
+            pixmap = QPixmap(self.photo_path)
+            return pixmap.scaled(*default_size, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
+        else:
+            # Trả về ảnh mặc định
+            default_path = "resources/default_avatar.png"
+            if os.path.exists(default_path):
+                pixmap = QPixmap(default_path)
+            else:
+                # Tạo ảnh pixmap trống nếu không tìm thấy ảnh mặc định
+                pixmap = QPixmap(*default_size)
+                pixmap.fill(Qt.GlobalColor.lightGray)
+            
+            return pixmap.scaled(*default_size, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
     
     def __str__(self):
         """

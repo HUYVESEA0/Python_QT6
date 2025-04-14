@@ -1,0 +1,27 @@
+{
+    "app": {
+        "name": "Hệ thống Quản lý Sinh viên",
+        "version": "2.0.0",
+        "language": "vi_VN",
+        "max_log_files": 10,
+        "max_backup_files": 5,
+        "auto_backup": true,
+        "backup_interval_days": 7
+    },
+    "database": {
+        "name": "student_management.db",
+        "backup_on_exit": true
+    },
+    "ui": {
+        "theme": "light",
+        "font_size": 10,
+        "show_welcome": true,
+        "table_rows_per_page": 50,
+        "notification_duration": 3000
+    },
+    "export": {
+        "default_format": "excel",
+        "default_directory": "exports",
+        "include_headers": true
+    }
+}

@@ -41,3 +41,181 @@
 2025-04-14 18:41:38 - root - INFO - Đã khởi tạo giao diện người dùng
 2025-04-14 18:42:24 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
 2025-04-14 18:42:24 - root - INFO - Ứng dụng đã đóng
+2025-04-14 19:07:18 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 19:07:18 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 19:07:18 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\app.db
+2025-04-14 19:07:18 - root - INFO - Đã khởi tạo UserController
+2025-04-14 19:07:27 - root - INFO - Người dùng đăng nhập thành công: admin
+2025-04-14 19:07:27 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 19:07:27 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\app.db
+2025-04-14 19:07:27 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 19:07:27 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 19:07:27 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 19:07:27 - root - INFO - Đã khởi tạo UserController
+2025-04-14 19:07:27 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 19:07:27 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 19:07:28 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 19:07:28 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 19:07:28 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 19:07:28 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 19:07:52 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
+2025-04-14 19:07:52 - root - INFO - Ứng dụng đã đóng
+2025-04-14 19:33:46 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 19:33:46 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 19:33:46 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\app.db
+2025-04-14 19:33:46 - root - INFO - Đã khởi tạo UserController
+2025-04-14 19:33:58 - root - INFO - Người dùng đăng nhập thành công: admin
+2025-04-14 19:33:58 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: F:\MY\Flask_app\GUI_app\Python_QT6\data\app.db
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo UserController
+2025-04-14 19:33:59 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 19:33:59 - root - ERROR - Error refreshing dashboard data: 'NoneType' object has no attribute 'setText'
+2025-04-14 19:33:59 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 19:33:59 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 19:33:59 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 19:33:59 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 19:33:59 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 19:33:59 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 19:34:00 - root - INFO - Applied theme: light
+2025-04-14 19:34:15 - root - INFO - Applied theme: dark
+2025-04-14 19:34:18 - root - INFO - Applied theme: dark
+2025-04-14 19:34:20 - root - INFO - Đã lấy thống kê cơ bản về sinh viên và khóa học
+2025-04-14 19:34:20 - root - ERROR - Error refreshing dashboard data: 'NoneType' object has no attribute 'setText'
+2025-04-14 19:38:30 - root - INFO - Đã đóng kết nối cơ sở dữ liệu
+2025-04-14 19:38:30 - root - INFO - Ứng dụng đã đóng
+2025-04-14 23:01:24 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:01:25 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:01:25 - root - INFO - Đã tạo tài khoản admin mặc định
+2025-04-14 23:01:25 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:01:25 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:01:25 - root - ERROR - Exception phát sinh: Lỗi khởi động ứng dụng: 'LoginDialog' object has no attribute 'loginSuccessful'
+Traceback (most recent call last):
+  File "f:\MY\Flask_app\GUI_app\Python_QT6\main.py", line 86, in main
+    login_dialog.loginSuccessful.connect(on_login_successful)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LoginDialog' object has no attribute 'loginSuccessful'
+2025-04-14 23:08:03 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:08:03 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:08:03 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:08:03 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:08:34 - root - WARNING - Đăng nhập thất bại: Mật khẩu không đúng cho người dùng 'admin'
+2025-04-14 23:08:39 - root - WARNING - Đăng nhập thất bại: admin
+2025-04-14 23:08:44 - root - WARNING - Đăng nhập thất bại: Mật khẩu không đúng cho người dùng 'admin'
+2025-04-14 23:08:45 - root - WARNING - Đăng nhập thất bại: admin
+2025-04-14 23:10:34 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:10:34 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:10:35 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:10:35 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:10:35 - root - INFO - Kiểm tra toàn vẹn cơ sở dữ liệu: OK
+2025-04-14 23:10:35 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 23:10:35 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 23:10:35 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 23:10:35 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:10:35 - root - ERROR - Lỗi khi tải dữ liệu dashboard: 'StatisticCard' object has no attribute 'value_label'
+2025-04-14 23:10:41 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:10:41 - root - CRITICAL - Lỗi khởi tạo cửa sổ chính: 'StudentView' object has no attribute 'total_students_label'
+2025-04-14 23:10:52 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:10:52 - root - ERROR - Exception phát sinh: Traceback (most recent call last):
+  File "f:\MY\Flask_app\GUI_app\Python_QT6\views\main_window.py", line 344, in toggle_theme
+    self.theme_label.setText(f"Theme: {new_theme.capitalize()}")
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'MainWindow' object has no attribute 'theme_label'
+NoneType: None
+2025-04-14 23:11:02 - root - INFO - Đã tạo bản sao lưu cơ sở dữ liệu tại: data\backups\student_management_20250414_231102.db
+2025-04-14 23:11:02 - root - INFO - Đã tối ưu hóa cơ sở dữ liệu
+2025-04-14 23:11:02 - root - INFO - Đã đóng kết nối đến cơ sở dữ liệu
+2025-04-14 23:16:07 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:16:07 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:16:07 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:16:07 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:16:14 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:16:14 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:16:14 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:16:15 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:16:15 - root - INFO - Kiểm tra toàn vẹn cơ sở dữ liệu: OK
+2025-04-14 23:16:15 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 23:16:15 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 23:16:15 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 23:16:15 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:16:15 - root - ERROR - Lỗi khi tải dữ liệu dashboard: 'StatisticCard' object has no attribute 'value_label'
+2025-04-14 23:16:19 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:16:19 - root - CRITICAL - Lỗi khởi tạo cửa sổ chính: 'StudentView' object has no attribute 'total_students_label'
+2025-04-14 23:16:24 - root - INFO - Đã tạo bản sao lưu cơ sở dữ liệu tại: data\backups\student_management_20250414_231624.db
+2025-04-14 23:16:24 - root - INFO - Đã tối ưu hóa cơ sở dữ liệu
+2025-04-14 23:16:24 - root - INFO - Đã đóng kết nối đến cơ sở dữ liệu
+2025-04-14 23:28:52 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:28:52 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:28:52 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:28:52 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:28:59 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:28:59 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:28:59 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:28:59 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:28:59 - root - INFO - Kiểm tra toàn vẹn cơ sở dữ liệu: OK
+2025-04-14 23:28:59 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 23:28:59 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 23:28:59 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 23:28:59 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:29:00 - root - ERROR - Lỗi khi thực thi truy vấn: no such table: activities
+2025-04-14 23:29:00 - root - ERROR - Query: 
+        SELECT a.*, u.username
+        FROM activities a
+        LEFT JOIN users u ON a.user_id = u.user_id
+        ORDER BY a.timestamp DESC
+        LIMIT ?
+        
+2025-04-14 23:29:00 - root - ERROR - Parameters: (1,)
+2025-04-14 23:29:00 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:29:00 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:29:00 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:29:00 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:29:00 - root - ERROR - Lỗi khi điền dữ liệu hoạt động: 'sqlite3.Row' object has no attribute 'get'
+2025-04-14 23:29:05 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 23:29:05 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:29:05 - root - INFO - Notification: Buổi tối tốt lành, Administrator! Chào mừng bạn đến với Hệ thống Quản lý Sinh viên.
+2025-04-14 23:29:07 - root - INFO - Notification: Hệ thống hiện có 0 sinh viên và 0 khóa học.
+2025-04-14 23:29:20 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:29:20 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:29:33 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:29:33 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:29:34 - root - INFO - Notification: Thao tác đã được thực hiện thành công!
+2025-04-14 23:29:39 - root - ERROR - Lỗi khi đóng ứng dụng: 'PhotoFrame' object has no attribute 'cleanup_temp_files'
+2025-04-14 23:40:09 - root - INFO - Hệ thống logging đã được thiết lập
+2025-04-14 23:40:10 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:40:10 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:40:10 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:40:16 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:40:16 - root - INFO - Đăng nhập thành công: admin
+2025-04-14 23:40:16 - root - INFO - Đã tạo các bảng trong cơ sở dữ liệu
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo kết nối đến cơ sở dữ liệu: f:\MY\Flask_app\GUI_app\Python_QT6\data\student_management.db
+2025-04-14 23:40:16 - root - INFO - Kiểm tra toàn vẹn cơ sở dữ liệu: OK
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo StudentController
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo CourseController
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo ReportController
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo UserController
+2025-04-14 23:40:16 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:40:16 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:40:16 - root - INFO - Lấy danh sách sinh viên: 0 sinh viên
+2025-04-14 23:40:16 - root - INFO - Lấy danh sách khóa học: 0 khóa học
+2025-04-14 23:40:16 - root - INFO - Đã khởi tạo giao diện người dùng
+2025-04-14 23:40:17 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:40:17 - root - INFO - Notification: Buổi tối tốt lành, Administrator! Chào mừng bạn đến với Hệ thống Quản lý Sinh viên.
+2025-04-14 23:40:18 - root - INFO - Notification: Hệ thống hiện có 0 sinh viên và 0 khóa học.
+2025-04-14 23:40:43 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:40:43 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:40:46 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:40:46 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:40:53 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:40:53 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:40:57 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:40:57 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:41:00 - root - INFO - Đã áp dụng theme: dark
+2025-04-14 23:41:00 - root - INFO - Notification: Đã chuyển sang giao diện Dark
+2025-04-14 23:41:01 - root - INFO - Đã áp dụng theme: light
+2025-04-14 23:41:01 - root - INFO - Notification: Đã chuyển sang giao diện Light
+2025-04-14 23:42:44 - root - INFO - Đã tạo bản sao lưu cơ sở dữ liệu tại: data\backups\student_management_20250414_234244.db
+2025-04-14 23:42:44 - root - INFO - Đã tối ưu hóa cơ sở dữ liệu
+2025-04-14 23:42:44 - root - INFO - Đã đóng kết nối đến cơ sở dữ liệu

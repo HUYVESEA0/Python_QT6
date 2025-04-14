@@ -1,116 +1,53 @@
-# Student Management System
+# Hệ thống Quản lý Sinh viên
 
-## Overview
-This project is a comprehensive Student Management System built with PyQt6. It provides a modern, responsive user interface for managing students, courses, enrollments, and academic reports.
+## Tổng quan
 
-## Features
-- Modern Qt6-based user interface
-- Complete student record management
-- Course catalog and management
-- Enrollment system with grade tracking
-- Statistical reporting and performance analysis
-- User authentication system
-- Cross-platform compatibility (Windows, macOS, Linux)
-- Responsive design elements
-- SQLite database integration
+Phần mềm Quản lý Sinh viên là ứng dụng desktop được phát triển bằng Python và PyQt6, cung cấp một giải pháp toàn diện để quản lý thông tin sinh viên, khóa học, và đăng ký học trong một cơ sở giáo dục. Phần mềm này được thiết kế với giao diện thân thiện, dễ sử dụng và chức năng phong phú.
 
-## Dependencies
-- Python 3.8+
-- PyQt6 >= 6.0.0
+## Tính năng chính
 
-## Installation
+- **Quản lý sinh viên**: Thêm, sửa, xóa và tìm kiếm thông tin sinh viên
+- **Quản lý khóa học**: Tạo, cập nhật và quản lý các khóa học
+- **Quản lý đăng ký**: Đăng ký sinh viên vào khóa học, cập nhật điểm số
+- **Báo cáo thống kê**: Tạo các báo cáo về tình trạng sinh viên, khóa học và kết quả học tập
+- **Dashboard**: Hiển thị thông tin tổng quan và các chỉ số quan trọng
+- **Tìm kiếm nâng cao**: Tìm kiếm sinh viên với nhiều tiêu chí
+- **Trích xuất dữ liệu**: Xuất báo cáo và dữ liệu ra Excel, PDF
+- **Nhật ký hoạt động**: Theo dõi các hoạt động của người dùng trong hệ thống
+- **Theme tùy chỉnh**: Chế độ sáng/tối và các theme tùy chỉnh
+- **Thông báo thông minh**: Hệ thống thông báo với animation và phân loại
 
-1. Clone the repository:
+## Yêu cầu hệ thống
+
+- Python 3.8 trở lên
+- PyQt6
+- SQLite3
+- Các thư viện Python khác được liệt kê trong tệp `requirements.txt`
+
+## Cài đặt
+
+1. Clone repository từ GitHub:
 ```bash
-git clone <repository-url>
-cd Python_QT6
+git clone https://github.com/yourusername/student-management-system.git
+cd student-management-system
 ```
 
-2. Create and activate a virtual environment:
+2. Tạo và kích hoạt môi trường ảo:
 ```bash
 python -m venv venv
-# On Windows
-venv\Scripts\activate
-# On macOS/Linux
-source venv/bin/activate
+source venv/bin/activate  # Trên Windows: venv\Scripts\activate
 ```
 
-3. Install dependencies:
+3. Cài đặt các thư viện phụ thuộc:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
-
-### Starting the Application
-You can run the application in two ways:
-
-#### Using the batch file (Windows)
-```bash
-run_app.bat
-```
-
-#### Using Python directly
+4. Chạy ứng dụng:
 ```bash
 python main.py
 ```
 
-### Default Login
-- Username: admin
-- Password: admin
+Hoặc sử dụng tập lệnh chạy `run_app.bat` (trên Windows) hoặc `run_app.sh` (trên Linux/MacOS).
 
-## Project Structure
-- `main.py`: Entry point for the application
-- `views/`: UI components for different modules
-  - `login_view.py`: Login screen interface
-  - `main_window.py`: Main application window
-  - `student_view.py`: Student management interface
-  - `course_view.py`: Course management interface
-  - `enrollment_view.py`: Enrollment management interface
-  - `report_view.py`: Reporting and statistics interface
-- `controllers/`: Business logic controllers
-  - `student_controller.py`: Student data operations
-  - `course_controller.py`: Course data operations
-  - `user_controller.py`: User authentication and management
-  - `report_controller.py`: Reporting and statistics generation
-- `models/`: Data models
-  - `student.py`: Student entity model
-  - `course.py`: Course entity model
-  - `user.py`: User entity model
-- `DB/`: Database operations
-  - `db_manager.py`: SQLite database management
-- `utils/`: Utility functions and helper classes
-  - `logger.py`: Application logging
-  - `helpers.py`: Common helper functions
-- `resources/`: Application resources
-  - `styles/`: CSS styling files
-- `run_app.bat`: Windows batch file to run the application
-
-## Data Storage
-The application stores data in a SQLite database located in the `data` directory. Log files are stored in the `logs` directory.
-
-## Features in Detail
-
-### Student Management
-- Add, edit, and delete student records
-- Search for students by various criteria
-- Track enrollment status and academic progress
-
-### Course Management
-- Create and manage course offerings
-- Set course capacity and instructor information
-- Track enrollment statistics
-
-### Enrollment System
-- Register students for courses
-- Record and manage grades
-- View enrollment history
-
-### Reporting
-- Overview statistics of students and courses
-- Course popularity analytics
-- Grade distribution reports
-- Individual student performance reports
-
-## License
-[Specify your license here]
+## Cấu trúc thư mục
