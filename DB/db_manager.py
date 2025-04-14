@@ -7,7 +7,7 @@ class DatabaseManager:
     """
     Lớp quản lý kết nối và thao tác với cơ sở dữ liệu SQLite.
     """
-    def __init__(self, db_path="student_management.db"):
+    def __init__(self, db_path="app.db"):
         """Khởi tạo kết nối đến cơ sở dữ liệu."""
         # Ensure db_path has a directory component
         if os.path.dirname(db_path) == '':
