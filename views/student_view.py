@@ -2,9 +2,9 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                             QLabel, QLineEdit, QComboBox, QPushButton, 
                             QTableWidget, QTableWidgetItem, QHeaderView, 
                             QMessageBox, QGroupBox, QSplitter, QDateEdit,
-                            QFileDialog, QFrame)
+                            QFileDialog, QFrame, QMenu)
 from PyQt6.QtCore import Qt, QDate, QSize
-from PyQt6.QtGui import QIcon, QPixmap, QColor
+from PyQt6.QtGui import QIcon, QPixmap, QColor, QAction
 from models.student import Student
 import logging
 import os
@@ -75,16 +75,19 @@ class PhotoFrame(QFrame):
     
     def browse_photo(self):
         """Mở dialog chọn ảnh từ máy tính"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Chọn ảnh đại diện", "", 
-            "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getOpenFileName(
+            self,
+            "Chọn ảnh đại diện",
+            "",
+            "Ảnh (*.png *.jpg *.jpeg *.bmp *.gif)"
         )
         
         if file_path:
             self.set_photo(file_path)
     
     def remove_photo(self):
-        """Xóa ảnh đã chọn"""
+        """Xóa ảnh đại diện và trở lại ảnh mặc định"""
         self.set_default_photo()
     
     def get_photo_path(self):
@@ -118,82 +121,114 @@ class StudentView(QWidget):
         self.init_ui()
         
     def init_ui(self):
-        """Thiết lập giao diện người dùng."""
+        """Thiết lập giao diện người dùng hiện đại."""
         main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Tiêu đề và nút chính
+        header_layout = QHBoxLayout()
+        title = QLabel("Quản lý sinh viên")
+        title.setStyleSheet("font-size: 16pt; font-weight: bold; color: #2979ff;")
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        
+        self.export_button = QPushButton("Xuất dữ liệu")
+        self.export_button.setIcon(QIcon("resources/icons/export.png") if os.path.exists("resources/icons/export.png") else QIcon())
+        self.export_button.clicked.connect(self.export_data)
+        header_layout.addWidget(self.export_button)
+        
+        main_layout.addLayout(header_layout)
+        
+        # Chia giao diện thành 2 phần: form bên trái và bảng bên phải
+        content_layout = QHBoxLayout()
+        
+        # --- PHẦN FORM NHẬP LIỆU ---
+        form_container = QWidget()
+        form_container.setFixedWidth(400)  # Điều chỉnh độ rộng phù hợp
+        form_layout = QVBoxLayout(form_container)
         
         # Layout chứa form và ảnh
-        form_photo_layout = QHBoxLayout()
-        
-        # Tạo form nhập liệu
         form_group = QGroupBox("Thông tin sinh viên")
-        form_layout = QFormLayout()
+        form_fields = QFormLayout()
         
         # ID sinh viên
         self.id_input = QLineEdit()
-        form_layout.addRow("Mã sinh viên:", self.id_input)
+        self.id_input.setPlaceholderText("Nhập mã sinh viên")
+        form_fields.addRow("Mã sinh viên:", self.id_input)
         
         # Họ tên
         self.name_input = QLineEdit()
-        form_layout.addRow("Họ và tên:", self.name_input)
+        self.name_input.setPlaceholderText("Nhập họ và tên")
+        form_fields.addRow("Họ và tên:", self.name_input)
         
         # Ngày sinh
         self.dob_input = QDateEdit()
         self.dob_input.setCalendarPopup(True)
         self.dob_input.setDate(QDate.currentDate())
-        form_layout.addRow("Ngày sinh:", self.dob_input)
+        form_fields.addRow("Ngày sinh:", self.dob_input)
         
         # Giới tính
         self.gender_input = QComboBox()
         self.gender_input.addItems(["Nam", "Nữ", "Khác"])
-        form_layout.addRow("Giới tính:", self.gender_input)
+        form_fields.addRow("Giới tính:", self.gender_input)
         
         # Email
         self.email_input = QLineEdit()
-        form_layout.addRow("Email:", self.email_input)
+        self.email_input.setPlaceholderText("example@mail.com")
+        form_fields.addRow("Email:", self.email_input)
         
         # Số điện thoại
         self.phone_input = QLineEdit()
-        form_layout.addRow("Số điện thoại:", self.phone_input)
+        self.phone_input.setPlaceholderText("0123456789")
+        form_fields.addRow("Số điện thoại:", self.phone_input)
         
         # Địa chỉ
         self.address_input = QLineEdit()
-        form_layout.addRow("Địa chỉ:", self.address_input)
+        self.address_input.setPlaceholderText("Nhập địa chỉ")
+        form_fields.addRow("Địa chỉ:", self.address_input)
         
         # Ngày nhập học
         self.enroll_date_input = QDateEdit()
         self.enroll_date_input.setCalendarPopup(True)
         self.enroll_date_input.setDate(QDate.currentDate())
-        form_layout.addRow("Ngày nhập học:", self.enroll_date_input)
+        form_fields.addRow("Ngày nhập học:", self.enroll_date_input)
         
         # Trạng thái
         self.status_input = QComboBox()
         self.status_input.addItems(["Đang học", "Tạm nghỉ", "Đã tốt nghiệp", "Đã thôi học"])
-        form_layout.addRow("Trạng thái:", self.status_input)
+        form_fields.addRow("Trạng thái:", self.status_input)
         
-        form_group.setLayout(form_layout)
+        form_group.setLayout(form_fields)
+        form_layout.addWidget(form_group)
         
         # Khung ảnh đại diện
+        photo_group = QGroupBox("Ảnh đại diện")
+        photo_layout = QVBoxLayout()
         self.photo_frame = PhotoFrame()
+        photo_layout.addWidget(self.photo_frame)
+        photo_group.setLayout(photo_layout)
+        form_layout.addWidget(photo_group)
         
-        # Thêm form và ảnh vào layout
-        form_photo_layout.addWidget(form_group, 3)
-        form_photo_layout.addWidget(self.photo_frame, 1)
-        
-        main_layout.addLayout(form_photo_layout)
-        
-        # Tạo các nút tác vụ
+        # Các nút tác vụ
+        button_group = QGroupBox("Thao tác")
         button_layout = QHBoxLayout()
         
         self.add_button = QPushButton("Thêm")
+        self.add_button.setObjectName("addButton")  # Set object name cho styling
+        self.add_button.setIcon(QIcon("resources/icons/add.png") if os.path.exists("resources/icons/add.png") else QIcon())
         self.add_button.clicked.connect(self.add_student)
         
         self.update_button = QPushButton("Cập nhật")
+        self.update_button.setIcon(QIcon("resources/icons/update.png") if os.path.exists("resources/icons/update.png") else QIcon())
         self.update_button.clicked.connect(self.update_student)
         
         self.delete_button = QPushButton("Xóa")
+        self.delete_button.setObjectName("deleteButton")  # Set object name cho styling
+        self.delete_button.setIcon(QIcon("resources/icons/delete.png") if os.path.exists("resources/icons/delete.png") else QIcon())
         self.delete_button.clicked.connect(self.delete_student)
         
         self.clear_button = QPushButton("Làm mới")
+        self.clear_button.setIcon(QIcon("resources/icons/clear.png") if os.path.exists("resources/icons/clear.png") else QIcon())
         self.clear_button.clicked.connect(self.clear_form)
         
         button_layout.addWidget(self.add_button)
@@ -201,39 +236,66 @@ class StudentView(QWidget):
         button_layout.addWidget(self.delete_button)
         button_layout.addWidget(self.clear_button)
         
-        main_layout.addLayout(button_layout)
+        button_group.setLayout(button_layout)
+        form_layout.addWidget(button_group)
+        
+        # --- PHẦN BẢNG DỮ LIỆU ---
+        table_container = QWidget()
+        table_layout = QVBoxLayout(table_container)
         
         # Tạo ô tìm kiếm
+        search_group = QGroupBox("Tìm kiếm")
         search_layout = QHBoxLayout()
         
-        search_layout.addWidget(QLabel("Tìm kiếm:"))
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Nhập mã, tên, email,...")
         search_layout.addWidget(self.search_input)
         
         self.search_button = QPushButton("Tìm")
+        self.search_button.setIcon(QIcon("resources/icons/search.png") if os.path.exists("resources/icons/search.png") else QIcon())
         self.search_button.clicked.connect(self.search_students)
         search_layout.addWidget(self.search_button)
         
         self.refresh_button = QPushButton("Tải lại")
+        self.refresh_button.setIcon(QIcon("resources/icons/refresh.png") if os.path.exists("resources/icons/refresh.png") else QIcon())
         self.refresh_button.clicked.connect(self.load_students)
         search_layout.addWidget(self.refresh_button)
         
-        # Nút tìm kiếm nâng cao
         self.advanced_search_button = QPushButton("Tìm kiếm nâng cao")
+        self.advanced_search_button.setIcon(QIcon("resources/icons/advanced_search.png") if os.path.exists("resources/icons/advanced_search.png") else QIcon())
         self.advanced_search_button.clicked.connect(self.show_advanced_search)
         search_layout.addWidget(self.advanced_search_button)
         
-        # Nút xuất dữ liệu
-        self.export_button = QPushButton("Xuất dữ liệu")
-        self.export_button.clicked.connect(self.export_data)
-        search_layout.addWidget(self.export_button)
+        search_group.setLayout(search_layout)
+        table_layout.addWidget(search_group)
         
-        main_layout.addLayout(search_layout)
+        # Bảng hiển thị danh sách sinh viên
+        table_label = QLabel("Danh sách sinh viên:")
+        table_label.setStyleSheet("font-weight: bold; color: #333;")
+        table_layout.addWidget(table_label)
         
-        # Tạo bảng hiển thị danh sách sinh viên
-        main_layout.addWidget(QLabel("Danh sách sinh viên:"))
+        # Thêm bộ lọc nhanh
+        from widgets.quick_filter_widget import QuickFilterWidget
         
+        filter_fields = {
+            "status": {
+                "label": "Trạng thái", 
+                "type": "combobox",
+                "options": [("Đang học", "Đang học"), ("Tạm nghỉ", "Tạm nghỉ"), 
+                          ("Đã tốt nghiệp", "Đã tốt nghiệp"), ("Đã thôi học", "Đã thôi học")]
+            },
+            "gender": {
+                "label": "Giới tính", 
+                "type": "combobox",
+                "options": [("Nam", "Nam"), ("Nữ", "Nữ"), ("Khác", "Khác")]
+            }
+        }
+        
+        self.quick_filter = QuickFilterWidget(filter_fields)
+        self.quick_filter.filterChanged.connect(self.apply_quick_filters)
+        table_layout.addWidget(self.quick_filter)
+        
+        # Bảng sinh viên
         self.table = QTableWidget()
         self.table.setColumnCount(9)
         self.table.setHorizontalHeaderLabels([
@@ -246,13 +308,43 @@ class StudentView(QWidget):
         self.table.setAlternatingRowColors(True)
         self.table.clicked.connect(self.on_table_clicked)
         
-        main_layout.addWidget(self.table)
+        # Thêm chức năng sắp xếp khi click vào header
+        self.table.horizontalHeader().setSortIndicatorShown(True)
+        self.table.horizontalHeader().sortIndicatorChanged.connect(self.sort_table)
         
-        # Add the total students label
+        table_layout.addWidget(self.table)
+        
+        # Hiển thị tổng số sinh viên và phân trang
+        footer_layout = QHBoxLayout()
+        
         self.total_students_label = QLabel("Tổng số: 0 sinh viên")
-        main_layout.addWidget(self.total_students_label)
+        self.total_students_label.setStyleSheet("font-weight: bold;")
+        footer_layout.addWidget(self.total_students_label)
         
+        footer_layout.addStretch()
+        
+        # Thêm phân trang
+        from widgets.pagination_widget import PaginationWidget
+        
+        self.pagination = PaginationWidget()
+        self.pagination.pageChanged.connect(self.change_page)
+        self.pagination.pageSizeChanged.connect(self.change_page_size)
+        footer_layout.addWidget(self.pagination)
+        
+        table_layout.addLayout(footer_layout)
+        
+        # Thêm các container vào layout chính
+        content_layout.addWidget(form_container)
+        content_layout.addWidget(table_container)
+        content_layout.setStretch(1, 1)  # Cho phép table_container mở rộng
+        
+        main_layout.addLayout(content_layout)
         self.setLayout(main_layout)
+        
+        # Khởi tạo biến phân trang
+        self.current_page = 1
+        self.page_size = 20
+        self.filtered_students = []
         
         # Tải danh sách sinh viên
         self.load_students()
@@ -260,7 +352,22 @@ class StudentView(QWidget):
     def load_students(self):
         """Tải danh sách sinh viên từ cơ sở dữ liệu và hiển thị lên bảng."""
         students = self.student_controller.get_all_students()
-        self.populate_table(students)
+        self.filtered_students = students
+        self.pagination.update_total_items(len(students))
+        self.populate_table_with_pagination()
+    
+    def populate_table_with_pagination(self):
+        """Hiển thị dữ liệu trên trang hiện tại"""
+        start_idx = (self.current_page - 1) * self.page_size
+        
+        # Nếu page_size là -1 thì hiển thị tất cả
+        if self.page_size == -1:
+            students_to_show = self.filtered_students
+        else:
+            students_to_show = self.filtered_students[start_idx:start_idx + self.page_size]
+        
+        self.populate_table(students_to_show)
+        self.total_students_label.setText(f"Tổng số: {len(self.filtered_students)} sinh viên")
     
     def populate_table(self, students):
         """
@@ -324,6 +431,76 @@ class StudentView(QWidget):
         # Cập nhật nhãn tổng số sinh viên
         self.total_students_label.setText(f"Tổng số: {len(students)} sinh viên")
     
+    def change_page(self, page):
+        """Xử lý khi thay đổi trang"""
+        self.current_page = page
+        self.populate_table_with_pagination()
+
+    def change_page_size(self, size):
+        """Xử lý khi thay đổi số lượng mục trên trang"""
+        self.page_size = size
+        self.current_page = 1  # Reset về trang đầu tiên
+        self.populate_table_with_pagination()
+
+    def apply_quick_filters(self, filters):
+        """
+        Áp dụng bộ lọc nhanh và hiển thị kết quả
+        
+        Args:
+            filters (dict): Dictionary chứa các bộ lọc
+        """
+        # Lấy tất cả sinh viên
+        all_students = self.student_controller.get_all_students()
+        
+        # Áp dụng bộ lọc
+        filtered_students = all_students
+        
+        for field, value in filters.items():
+            if field == "status" and value:
+                filtered_students = [s for s in filtered_students if s.status == value]
+            elif field == "gender" and value:
+                filtered_students = [s for s in filtered_students if s.gender == value]
+            elif field == "search_text" and value:
+                search_text = value.lower()
+                filtered_students = [s for s in filtered_students if 
+                                    search_text in s.student_id.lower() or
+                                    search_text in s.full_name.lower() or
+                                    search_text in s.email.lower()]
+        
+        # Cập nhật dữ liệu hiển thị
+        self.filtered_students = filtered_students
+        self.pagination.update_total_items(len(filtered_students))
+        self.current_page = 1  # Reset về trang đầu tiên
+        self.populate_table_with_pagination()
+
+    def sort_table(self, column_index, order):
+        """
+        Sắp xếp bảng dữ liệu theo cột được chọn
+        
+        Args:
+            column_index (int): Chỉ số cột
+            order (Qt.SortOrder): Thứ tự sắp xếp
+        """
+        # Các trường tương ứng với cột trong bảng
+        column_fields = [
+            "student_id", "full_name", "date_of_birth", "gender",
+            "email", "phone", "address", "enrolled_date", "status"
+        ]
+        
+        if 0 <= column_index < len(column_fields):
+            field = column_fields[column_index]
+            
+            # Sắp xếp dữ liệu
+            reverse_order = (order == Qt.SortOrder.DescendingOrder)
+            
+            self.filtered_students.sort(
+                key=lambda s: getattr(s, field) if getattr(s, field) is not None else "",
+                reverse=reverse_order
+            )
+            
+            # Cập nhật hiển thị
+            self.populate_table_with_pagination()
+
     def on_table_clicked(self):
         """Xử lý sự kiện khi người dùng chọn một dòng trong bảng."""
         selected_row = self.table.currentRow()
@@ -523,6 +700,18 @@ class StudentView(QWidget):
     def search_students(self):
         """Tìm kiếm sinh viên theo từ khóa."""
         keyword = self.search_input.text().strip()
+        
+        # Thêm từ khóa tìm kiếm vào bộ lọc nhanh
+        filters = self.quick_filter.current_filters.copy()
+        if keyword:
+            filters["search_text"] = keyword
+        else:
+            if "search_text" in filters:
+                del filters["search_text"]
+        
+        # Áp dụng bộ lọc
+        self.apply_quick_filters(filters)
+        
         if not keyword:
             self.load_students()
             return
@@ -574,7 +763,6 @@ class StudentView(QWidget):
             data.append(row_data)
         
         # Hiển thị menu xuất dữ liệu
-        from PyQt6.QtWidgets import QMenu
         export_menu = QMenu(self)
         export_excel_action = export_menu.addAction("Xuất ra Excel")
         export_pdf_action = export_menu.addAction("Xuất ra PDF")

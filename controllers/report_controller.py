@@ -409,3 +409,85 @@ class ReportController:
             return []
         
         return result
+
+    def get_grade_distribution(self):
+        """
+        Lấy phân phối điểm số của sinh viên theo khoảng điểm
+        
+        Returns:
+            dict: Dictionary với key là khoảng điểm, value là số lượng sinh viên
+        """
+        try:
+            query = """
+                SELECT
+                    CASE
+                        WHEN grade < 4.0 THEN 'F (0-3.9)'
+                        WHEN grade >= 4.0 AND grade < 5.5 THEN 'D (4.0-5.4)'
+                        WHEN grade >= 5.5 AND grade < 7.0 THEN 'C (5.5-6.9)'
+                        WHEN grade >= 7.0 AND grade < 8.5 THEN 'B (7.0-8.4)'
+                        WHEN grade >= 8.5 THEN 'A (8.5-10)'
+                    END AS grade_range,
+                    COUNT(*) as count
+                FROM enrollment
+                WHERE grade IS NOT NULL
+                GROUP BY grade_range
+                ORDER BY MIN(grade)
+            """
+            
+            cursor = self.db_manager.connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+            
+            grade_distribution = {}
+            for row in results:
+                grade_range, count = row
+                grade_distribution[grade_range] = count
+                
+            # Đảm bảo có đủ các khoảng điểm
+            all_ranges = ['F (0-3.9)', 'D (4.0-5.4)', 'C (5.5-6.9)', 'B (7.0-8.4)', 'A (8.5-10)']
+            for grade_range in all_ranges:
+                if grade_range not in grade_distribution:
+                    grade_distribution[grade_range] = 0
+            
+            # Sắp xếp theo thứ tự từ F đến A
+            sorted_distribution = {k: grade_distribution[k] for k in all_ranges}
+            
+            return sorted_distribution
+            
+        except Exception as e:
+            logging.error(f"Lỗi khi lấy phân phối điểm: {e}")
+            return {}
+    
+    def get_gender_statistics(self):
+        """
+        Lấy thống kê về giới tính của sinh viên
+        
+        Returns:
+            dict: Dictionary với key là giới tính, value là số lượng sinh viên
+        """
+        try:
+            query = """
+                SELECT gender, COUNT(*) as count 
+                FROM student 
+                GROUP BY gender
+            """
+            
+            cursor = self.db_manager.connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+            
+            gender_stats = {}
+            for row in results:
+                gender, count = row
+                gender_stats[gender or "Không xác định"] = count
+            
+            # Đảm bảo có đủ các loại giới tính
+            for gender in ["Nam", "Nữ", "Khác"]:
+                if gender not in gender_stats:
+                    gender_stats[gender] = 0
+            
+            return gender_stats
+            
+        except Exception as e:
+            logging.error(f"Lỗi khi lấy thống kê giới tính: {e}")
+            return {"Nam": 0, "Nữ": 0, "Khác": 0}

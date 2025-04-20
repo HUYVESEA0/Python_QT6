@@ -1,195 +1,132 @@
+"""
+Module quản lý cấu hình tổng hợp cho ứng dụng
+"""
 import os
-import json
 import logging
-from PyQt6.QtCore import QSettings, QCoreApplication
+import configparser
+from pathlib import Path
+from dotenv import load_dotenv
 
 class ConfigManager:
-    """
-    Quản lý cấu hình và cài đặt của ứng dụng
-    """
+    """Quản lý cấu hình ứng dụng"""
     
-    def __init__(self, config_file="config.json"):
-        # Đảm bảo thư mục data tồn tại
-        os.makedirs("data", exist_ok=True)
-        
-        # Đường dẫn đến file cấu hình
-        self.config_file = os.path.join("data", config_file)
-        
-        # Cấu hình mặc định
-        self.default_config = {
-            "app": {
-                "name": "Hệ thống Quản lý Sinh viên",
-                "version": "2.0.0",
-                "language": "vi_VN",
-                "max_log_files": 10,
-                "max_backup_files": 5,
-                "auto_backup": True,
-                "backup_interval_days": 7
-            },
-            "database": {
-                "name": "student_management.db",
-                "backup_on_exit": True
-            },
-            "ui": {
-                "theme": "light",
-                "font_size": 10,
-                "show_welcome": True,
-                "table_rows_per_page": 50,
-                "notification_duration": 3000
-            },
-            "export": {
-                "default_format": "excel",
-                "default_directory": "exports",
-                "include_headers": True
-            }
+    def __init__(self):
+        # Thư viện bắt buộc
+        self.required_packages = {
+            "PyQt6": "PyQt6",
+            "dotenv": "python-dotenv"
+            # Thêm các thư viện khác khi cần
         }
         
-        # Cấu hình hiện tại
-        self.config = self.load_config()
+        # Tải cấu hình từ .env
+        load_dotenv()
         
-        # Khởi tạo QSettings
-        QCoreApplication.setOrganizationName("MyOrg")
-        QCoreApplication.setApplicationName("StudentManagement")
-        self.settings = QSettings()
-    
-    def load_config(self):
-        """
-        Tải cấu hình từ file, hoặc tạo mới nếu không tồn tại
+        # Thư mục gốc
+        self.root_dir = Path(__file__).parent.parent.absolute()
         
-        Returns:
-            dict: Cấu hình đã tải
-        """
-        try:
-            if not os.path.exists(self.config_file):
-                return self.create_default_config()
-            
-            with open(self.config_file, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                
-            # Đảm bảo tất cả các khóa mặc định có trong cấu hình
-            self._ensure_default_keys(config)
-                
-            return config
-                
-        except Exception as e:
-            logging.error(f"Lỗi khi tải file cấu hình: {e}")
-            return self.create_default_config()
+        # Create configparser object for config access
+        self.config = configparser.ConfigParser()
+        
+        # Cấu hình phân cấp
+        self._config = {}
+        
+        # Tải cấu hình từ file nếu có
+        self._load_config()
     
-    def _ensure_default_keys(self, config):
+    def get(self, section, key=None, default=None):
         """
-        Đảm bảo tất cả các khóa mặc định có trong cấu hình
+        Get configuration values.
         
         Args:
-            config (dict): Cấu hình cần kiểm tra và cập nhật
-        """
-        for section, settings in self.default_config.items():
-            if section not in config:
-                config[section] = {}
-                
-            for key, value in settings.items():
-                if key not in config[section]:
-                    config[section][key] = value
-    
-    def create_default_config(self):
-        """
-        Tạo và lưu cấu hình mặc định
-        
-        Returns:
-            dict: Cấu hình mặc định
-        """
-        try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(self.default_config, f, ensure_ascii=False, indent=4)
-                
-            return self.default_config
-                
-        except Exception as e:
-            logging.error(f"Lỗi khi tạo file cấu hình mặc định: {e}")
-            return dict(self.default_config)  # Trả về bản sao của cấu hình mặc định
-    
-    def save_config(self):
-        """
-        Lưu cấu hình hiện tại vào file
-        
-        Returns:
-            bool: True nếu thành công, False nếu thất bại
-        """
-        try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
-                json.dump(self.config, f, ensure_ascii=False, indent=4)
-                
-            return True
-                
-        except Exception as e:
-            logging.error(f"Lỗi khi lưu file cấu hình: {e}")
-            return False
-    
-    def get(self, section, key, default=None):
-        """
-        Lấy giá trị cấu hình
-        
-        Args:
-            section (str): Phần cấu hình
-            key (str): Khóa cấu hình
-            default: Giá trị mặc định nếu không tìm thấy
+            section: Config section
+            key: Optional key within section
+            default: Default value if section/key not found
             
         Returns:
-            Giá trị cấu hình hoặc giá trị mặc định
+            Either entire section dict or specific key value
         """
         try:
-            return self.config[section][key]
-        except KeyError:
-            if default is not None:
+            if key is None:
+                # Return the entire section
+                if section in self._config:
+                    return self._config.get(section, {})
                 return default
-            
-            # Thử lấy từ cấu hình mặc định
-            try:
-                return self.default_config[section][key]
-            except KeyError:
-                return None
+            else:
+                # Return specific key from section with optional default
+                section_data = self._config.get(section, {})
+                return section_data.get(key, default)
+        except Exception as e:
+            logging.error(f"Error in ConfigManager.get(): {e}")
+            return default
     
     def set(self, section, key, value):
-        """
-        Thiết lập giá trị cấu hình
+        """Thiết lập giá trị cấu hình"""
+        if section not in self._config:
+            self._config[section] = {}
+        self._config[section][key] = value
+    
+    def get_config(self, section, key, default=None):
+        """Lấy giá trị cấu hình phân cấp"""
+        if section not in self._config:
+            return default
+        return self._config[section].get(key, default)
+    
+    def save_config(self):
+        """Lưu cấu hình vào file"""
+        config_path = os.path.join(self.root_dir, 'config', 'app_config.json')
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
         
-        Args:
-            section (str): Phần cấu hình
-            key (str): Khóa cấu hình
-            value: Giá trị cấu hình mới
-            
-        Returns:
-            bool: True nếu thành công, False nếu thất bại
-        """
         try:
-            if section not in self.config:
-                self.config[section] = {}
-                
-            self.config[section][key] = value
-            return self.save_config()
-                
+            with open(config_path, 'w', encoding='utf-8') as f:
+                import json
+                json.dump(self._config, f, indent=4)
+            return True
         except Exception as e:
-            logging.error(f"Lỗi khi thiết lập giá trị cấu hình: {e}")
+            logging.error(f"Lỗi khi lưu cấu hình: {str(e)}")
             return False
     
-    def get_setting(self, key, default=None):
-        """
-        Lấy giá trị từ QSettings
-        
-        Args:
-            key (str): Khóa cài đặt
-            default: Giá trị mặc định
+    def _load_config(self):
+        """Load configuration from files and environment variables"""
+        # Create a DEFAULT section if it doesn't exist
+        if 'DEFAULT' not in self._config:
+            self._config['DEFAULT'] = {}
             
-        Returns:
-            Giá trị cài đặt hoặc giá trị mặc định
-        """
-        return self.settings.value(key, default)
-    
-    def set_setting(self, key, value):
-        """
-        Thiết lập giá trị cho QSettings
+        # Add DEFAULT section to configparser
+        self.config['DEFAULT'] = {}
         
-        Args:
-            key (str): Khóa cài đặt
-            value: Giá trị cần thiết lập
-        """
-        self.settings.setValue(key, value)
+        # Load environment variables into DEFAULT section
+        for key, value in os.environ.items():
+            if key.startswith('APP_'):
+                self._config['DEFAULT'][key] = value
+                self.config['DEFAULT'][key] = value
+    
+    def get_db_path(self):
+        """Get database path from configuration or default location"""
+        # First check environment variable
+        db_path = os.getenv('DB_PATH')
+        
+        # Next check config file
+        if not db_path and 'database' in self._config:
+            db_path = self._config.get('database', {}).get('path')
+            
+        # Fallback to default path
+        if not db_path:
+            db_path = str(self.root_dir / 'DB' / 'student_management.db')
+            
+        logging.debug(f"Using database path: {db_path}")
+        return db_path
+    
+    def check_dependency(self, module_name):
+        """Kiểm tra xem một thư viện đã được cài đặt chưa"""
+        try:
+            __import__(module_name)
+            return True
+        except ImportError:
+            return False
+    
+    def check_all_required_dependencies(self):
+        """Kiểm tra tất cả các thư viện bắt buộc"""
+        for module_name in self.required_packages:
+            if not self.check_dependency(module_name):
+                return False
+        return True

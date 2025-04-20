@@ -5,9 +5,9 @@ from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStatusBar,
                              QMessageBox, QLabel, QToolBar, QWidget,
                              QMenu, QDialog, QVBoxLayout, QFormLayout, 
                              QPushButton, QLineEdit, QDialogButtonBox,
-                             QSplashScreen)
-from PyQt6.QtGui import QIcon, QPixmap, QAction, QFont, QImage, QCursor
-from PyQt6.QtCore import Qt, QSize, QTimer
+                             QSplashScreen, QHBoxLayout, QApplication)
+from PyQt6.QtGui import QIcon, QPixmap, QAction, QFont, QImage, QCursor, QActionGroup
+from PyQt6.QtCore import Qt, QSize, QTimer, QPoint
 from DB.db_manager import DatabaseManager
 from controllers.student_controller import StudentController
 from controllers.course_controller import CourseController
@@ -19,7 +19,7 @@ from views.enrollment_view import EnrollmentView
 from views.report_view import ReportView
 from views.dashboard_view import DashboardView
 from views.activity_log_view import ActivityLogView
-from utils.theme_manager import ThemeManager
+# Removed ThemeManager import
 from utils.notification_manager import NotificationManager, NotificationType
 from utils.config_manager import ConfigManager
 import logging
@@ -32,44 +32,49 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         try:
-            # Lưu thông tin người dùng đăng nhập
+            # Lưu thông tin người dùng hiện tại
             self.current_user = current_user
             
-            # Khởi tạo cơ sở dữ liệu
-            self.db_manager = DatabaseManager()
-            
-            # Kiểm tra tính toàn vẹn cơ sở dữ liệu
-            if not self.db_manager.check_database_integrity():
-                QMessageBox.warning(
-                    self,
-                    "Cảnh báo",
-                    "Phát hiện vấn đề với cơ sở dữ liệu. Hãy liên hệ quản trị viên để khắc phục."
-                )
-            
-            # Khởi tạo controllers
-            self.student_controller = StudentController(self.db_manager)
-            self.course_controller = CourseController(self.db_manager)
-            self.report_controller = ReportController(self.db_manager)
-            self.user_controller = UserController(self.db_manager)
-            
             # Khởi tạo config manager
+            from utils.config_manager import ConfigManager
             self.config_manager = ConfigManager()
             
-            # Khởi tạo theme manager
-            self.theme_manager = ThemeManager()
+            # Khởi tạo các thành phần quan trọng
+            from utils.notification_manager import NotificationManager
+            
+            # Removed theme manager initialization
             
             # Khởi tạo notification manager
             self.notification_manager = NotificationManager()
-            self.notification_manager.set_parent(self)  # Thiết lập parent
+            self.notification_manager.set_parent(self)
+            # Removed theme manager setter
+            
+            # Khởi tạo database manager
+            from DB.db_manager import DatabaseManager
+            self.db_manager = DatabaseManager()
+            
+            # Khởi tạo các controllers
+            from controllers.student_controller import StudentController
+            self.student_controller = StudentController(self.db_manager)
+            
+            from controllers.course_controller import CourseController
+            self.course_controller = CourseController(self.db_manager)
+            
+            from controllers.report_controller import ReportController
+            self.report_controller = ReportController(self.db_manager)
             
             # Thiết lập giao diện
             self.init_ui()
             
-            # Áp dụng theme lưu trong cài đặt
-            self.theme_manager.apply_current_theme()
+            # Khôi phục trạng thái cửa sổ
+            self.restore_window_state()
+            
+            # Kiểm tra kết nối cơ sở dữ liệu
+            self.check_database_connection()
             
             # Hiển thị thông báo chào mừng
-            if self.config_manager.get("ui", "show_welcome", True):
+            show_welcome = self.config_manager.get("ui", "show_welcome", True)
+            if show_welcome:
                 self.show_welcome_notification()
                 
         except Exception as e:
@@ -81,21 +86,32 @@ class MainWindow(QMainWindow):
             )
         
     def init_ui(self):
-        """Thiết lập giao diện người dùng."""
+        """Thiết lập giao diện người dùng với tabbar truyền thống."""
         self.setWindowTitle("Hệ thống Quản lý Sinh viên - Phiên bản 2.0")
-        self.setGeometry(100, 100, 1200, 800)
+        self.setGeometry(100, 100, 1280, 800)
         
-        # Thêm menu
-        self.create_menu()
+        # Thiết lập icon cho ứng dụng
+        icon_path = "resources/icons/app_icon.png"
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         
-        # Thêm toolbar
+        # Tạo menu bar
+        self.create_menu_bar()
+        
+        # Tạo toolbar
         self.create_toolbar()
         
-        # Tạo tabbed widget
+        # Tạo widget chính
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        
+        # Tạo tabbed widget với giao diện truyền thống
         self.tab_widget = QTabWidget()
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.North)
-        self.tab_widget.setMovable(True)
         self.tab_widget.setDocumentMode(True)
+        self.tab_widget.setTabBarAutoHide(False)  # Hiển thị tab bar
         
         # Thêm các tab
         self.dashboard_view = DashboardView(
@@ -112,32 +128,38 @@ class MainWindow(QMainWindow):
         self.report_view = ReportView(self.report_controller)
         self.activity_log_view = ActivityLogView(self.db_manager)
         
-        self.tab_widget.addTab(self.dashboard_view, QIcon("resources/icons/dashboard.png") if os.path.exists("resources/icons/dashboard.png") else QIcon(), "Dashboard")
-        self.tab_widget.addTab(self.student_view, QIcon("resources/icons/student.png") if os.path.exists("resources/icons/student.png") else QIcon(), "Sinh viên")
-        self.tab_widget.addTab(self.course_view, QIcon("resources/icons/course.png") if os.path.exists("resources/icons/course.png") else QIcon(), "Khóa học")
-        self.tab_widget.addTab(self.enrollment_view, QIcon("resources/icons/enrollment.png") if os.path.exists("resources/icons/enrollment.png") else QIcon(), "Đăng ký")
-        self.tab_widget.addTab(self.report_view, QIcon("resources/icons/report.png") if os.path.exists("resources/icons/report.png") else QIcon(), "Báo cáo")
+        # Set object names để có thể style riêng trong QSS
+        self.dashboard_view.setObjectName("dashboardView")
+        self.student_view.setObjectName("studentView")
+        self.course_view.setObjectName("courseView")
+        self.enrollment_view.setObjectName("enrollmentView")
+        self.report_view.setObjectName("reportView")
+        self.activity_log_view.setObjectName("activityLogView")
         
-        # Chỉ hiển thị tab nhật ký cho admin
+        # Thêm các tab với icons
+        icons_path = "resources/icons/"
+        self.tab_widget.addTab(self.dashboard_view, QIcon(icons_path + "dashboard.png"), "Dashboard")
+        self.tab_widget.addTab(self.student_view, QIcon(icons_path + "student.png"), "Sinh viên")
+        self.tab_widget.addTab(self.course_view, QIcon(icons_path + "course.png"), "Khóa học")
+        self.tab_widget.addTab(self.enrollment_view, QIcon(icons_path + "enrollment.png"), "Đăng ký")
+        self.tab_widget.addTab(self.report_view, QIcon(icons_path + "report.png"), "Báo cáo")
+        
+        # Tab nhật ký chỉ hiển thị với admin
         if self.current_user and self.current_user.role == "admin":
-            self.tab_widget.addTab(self.activity_log_view, QIcon("resources/icons/log.png") if os.path.exists("resources/icons/log.png") else QIcon(), "Nhật ký")
+            self.tab_widget.addTab(self.activity_log_view, QIcon(icons_path + "activity.png"), "Nhật ký")
         
-        # Thiết lập widget trung tâm
-        self.setCentralWidget(self.tab_widget)
+        main_layout.addWidget(self.tab_widget)
         
-        # Tạo status bar
+        # Thiết lập status bar với thông tin người dùng
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         
         # Hiển thị thông tin người dùng đăng nhập
         if self.current_user:
-            user_info = f"Người dùng: {self.current_user.full_name} ({self.current_user.role})"
-            self.user_label = QLabel(user_info)
-            self.status_bar.addPermanentWidget(self.user_label)
+            user_label = QLabel(f"Người dùng: {self.current_user.full_name} ({self.current_user.role})")
+            self.status_bar.addPermanentWidget(user_label)
         
-        # Hiển thị theme hiện tại
-        self.theme_label = QLabel(f"Theme: {self.theme_manager.get_current_theme().capitalize()}")
-        self.status_bar.addPermanentWidget(self.theme_label)
+        # Removed theme label
         
         # Hiển thị thông báo sẵn sàng
         self.status_label = QLabel("Hệ thống đã sẵn sàng")
@@ -149,7 +171,7 @@ class MainWindow(QMainWindow):
         self.connection_check_timer = QTimer(self)
         self.connection_check_timer.timeout.connect(self.check_database_connection)
         self.connection_check_timer.start(60000)  # Kiểm tra mỗi 60 giây
-    
+
     def check_database_connection(self):
         """Kiểm tra kết nối đến cơ sở dữ liệu."""
         if not self.db_manager.connection:
@@ -160,192 +182,109 @@ class MainWindow(QMainWindow):
             except:
                 self.notification_manager.show_warning("Mất kết nối đến cơ sở dữ liệu. Đang thử kết nối lại...")
     
-    def create_menu(self):
-        """Tạo thanh menu của ứng dụng."""
-        menu_bar = self.menuBar()
+    def create_navbar(self):
+        """Tạo navbar hiện đại kết hợp menu và toolbar"""
+        icons_path = "resources/icons/"
         
-        # Menu Hệ thống
-        system_menu = menu_bar.addMenu('&Hệ thống')
+        dashboard_btn = self.navbar.add_tab_button("Dashboard", icons_path + "dashboard.png", 0, "Trang tổng quan")
+        student_btn = self.navbar.add_tab_button("Sinh viên", icons_path + "student.png", 1, "Quản lý sinh viên")
+        course_btn = self.navbar.add_tab_button("Khóa học", icons_path + "course.png", 2, "Quản lý khóa học")
+        enrollment_btn = self.navbar.add_tab_button("Đăng ký", icons_path + "enrollment.png", 3, "Đăng ký khóa học")
+        report_btn = self.navbar.add_tab_button("Báo cáo", icons_path + "report.png", 4, "Xem báo cáo thống kê")
         
-        # - Dashboard
-        dashboard_action = QAction(QIcon("resources/icons/dashboard.png") if os.path.exists("resources/icons/dashboard.png") else QIcon(), '&Dashboard', self)
-        dashboard_action.setStatusTip('Hiển thị trang tổng quan')
-        dashboard_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(0))
-        system_menu.addAction(dashboard_action)
-        
-        system_menu.addSeparator()
-        
-        # - Đổi theme
-        theme_menu = QMenu('Giao diện', self)
-        light_theme_action = QAction('Chế độ sáng', self)
-        light_theme_action.triggered.connect(lambda: self.change_theme("light"))
-        dark_theme_action = QAction('Chế độ tối', self)
-        dark_theme_action.triggered.connect(lambda: self.change_theme("dark"))
-        toggle_theme_action = QAction('Chuyển đổi chế độ', self)
-        toggle_theme_action.setShortcut('Ctrl+T')
-        toggle_theme_action.triggered.connect(self.toggle_theme)
-        
-        theme_menu.addAction(light_theme_action)
-        theme_menu.addAction(dark_theme_action)
-        theme_menu.addAction(toggle_theme_action)
-        system_menu.addMenu(theme_menu)
-        
-        # - Đổi mật khẩu
-        change_pwd_action = QAction('Đổi &mật khẩu', self)
-        change_pwd_action.setStatusTip('Thay đổi mật khẩu đăng nhập')
-        change_pwd_action.triggered.connect(self.change_password)
-        system_menu.addAction(change_pwd_action)
-        
-        system_menu.addSeparator()
-        
-        # - Thoát
-        exit_action = QAction('&Thoát', self)
-        exit_action.setShortcut('Ctrl+Q')
-        exit_action.setStatusTip('Thoát khỏi ứng dụng')
-        exit_action.triggered.connect(self.close)
-        system_menu.addAction(exit_action)
-        
-        # Menu Quản lý
-        manage_menu = menu_bar.addMenu('&Quản lý')
-        
-        # - Sinh viên
-        student_action = QAction(QIcon("resources/icons/student.png") if os.path.exists("resources/icons/student.png") else QIcon(), '&Sinh viên', self)
-        student_action.setStatusTip('Quản lý sinh viên')
-        student_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(1))
-        manage_menu.addAction(student_action)
-        
-        # - Khóa học
-        course_action = QAction(QIcon("resources/icons/course.png") if os.path.exists("resources/icons/course.png") else QIcon(), '&Khóa học', self)
-        course_action.setStatusTip('Quản lý khóa học')
-        course_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
-        manage_menu.addAction(course_action)
-        
-        # - Đăng ký
-        enrollment_action = QAction(QIcon("resources/icons/enrollment.png") if os.path.exists("resources/icons/enrollment.png") else QIcon(), 'Đăng &ký khóa học', self)
-        enrollment_action.setStatusTip('Quản lý đăng ký khóa học')
-        enrollment_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(3))
-        manage_menu.addAction(enrollment_action)
-        
-        # Menu Báo cáo
-        report_menu = menu_bar.addMenu('&Báo cáo')
-        
-        # - Thống kê
-        stats_action = QAction(QIcon("resources/icons/report.png") if os.path.exists("resources/icons/report.png") else QIcon(), '&Thống kê', self)
-        stats_action.setStatusTip('Xem báo cáo thống kê')
-        stats_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(4))
-        report_menu.addAction(stats_action)
-        
-        # - Nhật ký hoạt động (chỉ dành cho admin)
+        # Hiển thị tab nhật ký chỉ cho admin
         if self.current_user and self.current_user.role == "admin":
-            log_action = QAction(QIcon("resources/icons/log.png") if os.path.exists("resources/icons/log.png") else QIcon(), '&Nhật ký hoạt động', self)
-            log_action.setStatusTip('Xem nhật ký hoạt động của hệ thống')
-            log_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(5))
-            report_menu.addAction(log_action)
+            log_btn = self.navbar.add_tab_button("Nhật ký", icons_path + "activity.png", 5, "Xem nhật ký hoạt động")
         
-        # Menu trích xuất
-        export_menu = menu_bar.addMenu('&Trích xuất')
+        # Thêm menu Hệ thống
+        system_btn, system_menu = self.navbar.add_menu_button("Hệ thống", icons_path + "system.png")
         
-        # - Xuất danh sách sinh viên
-        export_students_action = QAction('Danh sách sinh viên', self)
-        export_students_action.setStatusTip('Xuất danh sách sinh viên ra file Excel')
-        export_students_action.triggered.connect(self.export_students)
-        export_menu.addAction(export_students_action)
+        # Các hành động trong menu Hệ thống
+        self.navbar.add_action_to_menu("Hệ thống", "Đổi mật khẩu", self.change_password, 
+                                   icons_path + "password.png", "Ctrl+P")
         
-        # - Xuất danh sách khóa học
-        export_courses_action = QAction('Danh sách khóa học', self)
-        export_courses_action.setStatusTip('Xuất danh sách khóa học ra file Excel')
-        export_courses_action.triggered.connect(self.export_courses)
-        export_menu.addAction(export_courses_action)
+        # Removed theme menu
+                                   
+        self.navbar.add_separator_to_menu("Hệ thống")
+        self.navbar.add_action_to_menu("Hệ thống", "Thoát", self.close, 
+                                  icons_path + "exit.png", "Ctrl+Q")
         
-        # - Xuất báo cáo
-        export_report_action = QAction('Báo cáo thống kê', self)
-        export_report_action.setStatusTip('Xuất báo cáo thống kê ra file PDF')
-        export_report_action.triggered.connect(self.export_report)
-        export_menu.addAction(export_report_action)
+        # Thêm menu Trích xuất
+        export_btn, export_menu = self.navbar.add_menu_button("Trích xuất", icons_path + "export.png")
         
-        # Menu Trợ giúp
-        help_menu = menu_bar.addMenu('&Trợ giúp')
+        # Các hành động trong menu Trích xuất
+        self.navbar.add_action_to_menu("Trích xuất", "Danh sách sinh viên", self.export_students, 
+                                  icons_path + "student_export.png")
+        self.navbar.add_action_to_menu("Trích xuất", "Danh sách khóa học", self.export_courses, 
+                                  icons_path + "course_export.png")
+        self.navbar.add_action_to_menu("Trích xuất", "Báo cáo thống kê", self.export_report, 
+                                  icons_path + "report_export.png")
         
-        # - Giới thiệu
-        about_action = QAction('&Giới thiệu', self)
-        about_action.setStatusTip('Thông tin về ứng dụng')
-        about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
-    
-    def create_toolbar(self):
-        """Tạo thanh công cụ của ứng dụng."""
-        toolbar = QToolBar("Main Toolbar")
-        toolbar.setIconSize(QSize(32, 32))
-        toolbar.setMovable(False)
-        self.addToolBar(toolbar)
+        # Thêm menu Trợ giúp
+        help_btn, help_menu = self.navbar.add_menu_button("Trợ giúp", icons_path + "help.png")
         
-        # Button Dashboard
-        dashboard_action = QAction(QIcon("resources/icons/dashboard.png") if os.path.exists("resources/icons/dashboard.png") else QIcon(), "Dashboard", self)
-        dashboard_action.setStatusTip("Dashboard")
-        dashboard_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(0))
-        toolbar.addAction(dashboard_action)
+        # Các hành động trong menu Trợ giúp
+        self.navbar.add_action_to_menu("Trợ giúp", "Giới thiệu", self.show_about, 
+                                  icons_path + "about.png")
         
-        # Button Sinh viên
-        student_action = QAction(QIcon("resources/icons/student.png") if os.path.exists("resources/icons/student.png") else QIcon(), "Sinh viên", self)
-        student_action.setStatusTip("Quản lý sinh viên")
-        student_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(1))
-        toolbar.addAction(student_action)
+        # Thêm các nút bên phải
+        # Nút thông báo
+        notification_btn = QPushButton()
+        notification_btn.setIcon(QIcon(icons_path + "notification.png") if os.path.exists(icons_path + "notification.png") else QIcon())
+        notification_btn.setIconSize(QSize(20, 20))
+        notification_btn.setToolTip("Hiển thị thông báo")
+        notification_btn.setFixedSize(36, 36)
+        notification_btn.setObjectName("notificationButton")
+        notification_btn.clicked.connect(self.show_test_notification)
         
-        # Button Khóa học
-        course_action = QAction(QIcon("resources/icons/course.png") if os.path.exists("resources/icons/course.png") else QIcon(), "Khóa học", self)
-        course_action.setStatusTip("Quản lý khóa học")
-        course_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
-        toolbar.addAction(course_action)
+        # Removed theme button
         
-        # Button Đăng ký
-        enrollment_action = QAction(QIcon("resources/icons/enrollment.png") if os.path.exists("resources/icons/enrollment.png") else QIcon(), "Đăng ký", self)
-        enrollment_action.setStatusTip("Đăng ký khóa học")
-        enrollment_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(3))
-        toolbar.addAction(enrollment_action)
+        # Thêm nút vào bên phải navbar
+        self.navbar.add_right_aligned_widget(notification_btn)
+
+    def show_search_dialog(self):
+        """Hiển thị hộp thoại tìm kiếm"""
+        # Chức năng tìm kiếm sẽ được triển khai sau
+        self.notification_manager.show_info("Chức năng tìm kiếm đang được phát triển")
+
+    def show_user_menu(self):
+        """Hiển thị menu tài khoản người dùng"""
+        if not self.current_user:
+            return
         
-        # Button Báo cáo
-        report_action = QAction(QIcon("resources/icons/report.png") if os.path.exists("resources/icons/report.png") else QIcon(), "Báo cáo", self)
-        report_action.setStatusTip("Xem báo cáo thống kê")
-        report_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(4))
-        toolbar.addAction(report_action)
+        menu = QMenu(self)
         
-        # Thêm separator
-        toolbar.addSeparator()
+        # Hiển thị thông tin người dùng
+        user_info = QAction(f"{self.current_user.full_name} ({self.current_user.role})", self)
+        user_info.setEnabled(False)
+        menu.addAction(user_info)
         
-        # Toggle Theme button
-        theme_action = QAction(QIcon("resources/icons/theme.png") if os.path.exists("resources/icons/theme.png") else QIcon(), "Đổi giao diện", self)
-        theme_action.setStatusTip("Chuyển đổi giữa chế độ sáng/tối")
-        theme_action.triggered.connect(self.toggle_theme)
-        toolbar.addAction(theme_action)
+        menu.addSeparator()
         
-        # Button Thông báo
-        notification_action = QAction(QIcon("resources/icons/notification.png") if os.path.exists("resources/icons/notification.png") else QIcon(), "Thông báo", self)
-        notification_action.setStatusTip("Hiển thị thông báo thử nghiệm")
-        notification_action.triggered.connect(self.show_test_notification)
-        toolbar.addAction(notification_action)
+        # Các tùy chọn tài khoản
+        change_pwd_action = QAction("Đổi mật khẩu", self)
+        change_pwd_action.triggered.connect(self.change_password)
+        menu.addAction(change_pwd_action)
         
-        # Button trợ giúp
-        help_action = QAction(QIcon("resources/icons/help.png") if os.path.exists("resources/icons/help.png") else QIcon(), "Trợ giúp", self)
-        help_action.setStatusTip("Hiển thị trợ giúp")
+        menu.addSeparator()
+        
+        # Tùy chọn trợ giúp
+        help_action = QAction("Trợ giúp", self)
         help_action.triggered.connect(self.show_about)
-        toolbar.addAction(help_action)
-    
-    def change_theme(self, theme_name):
-        """Thay đổi theme của ứng dụng"""
-        if self.theme_manager.set_theme(theme_name):
-            self.theme_label.setText(f"Theme: {theme_name.capitalize()}")
-            self.status_label.setText(f"Đã chuyển sang giao diện {theme_name.capitalize()}")
-            # Hiển thị thông báo
-            self.notification_manager.show_info(f"Đã chuyển sang giao diện {theme_name.capitalize()}")
-    
-    def toggle_theme(self):
-        """Chuyển đổi giữa chế độ sáng và tối"""
-        new_theme = self.theme_manager.toggle_theme()
-        self.theme_label.setText(f"Theme: {new_theme.capitalize()}")
-        self.status_label.setText(f"Đã chuyển sang giao diện {new_theme.capitalize()}")
-        # Hiển thị thông báo
-        self.notification_manager.show_info(f"Đã chuyển sang giao diện {new_theme.capitalize()}")
-    
+        menu.addAction(help_action)
+        
+        menu.addSeparator()
+        
+        # Tùy chọn đăng xuất
+        logout_action = QAction("Đăng xuất", self)
+        logout_action.triggered.connect(self.close)
+        menu.addAction(logout_action)
+        
+        # Hiển thị menu dưới nút user
+        button = self.sender()
+        if button:
+            menu.exec(button.mapToGlobal(QPoint(0, button.height())))
+
     def show_welcome_notification(self):
         """Hiển thị thông báo chào mừng"""
         greeting = "Buổi sáng" if 5 <= datetime.now().hour < 12 else "Buổi chiều" if 12 <= datetime.now().hour < 18 else "Buổi tối"
@@ -364,23 +303,31 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(1500, lambda: self.notification_manager.show_info(system_info, timeout=7000))
     
     def show_test_notification(self):
-        """Hiển thị các loại thông báo để thử nghiệm"""
+        """Hiển thị các loại thông báo để thử nghiệm giao diện mới"""
         notification_menu = QMenu(self)
         info_action = notification_menu.addAction("Thông báo thông tin")
         success_action = notification_menu.addAction("Thông báo thành công")
         warning_action = notification_menu.addAction("Thông báo cảnh báo")
         error_action = notification_menu.addAction("Thông báo lỗi")
+        multiple_action = notification_menu.addAction("Hiển thị nhiều thông báo")
         
         action = notification_menu.exec(QCursor.pos())
         
         if action == info_action:
-            self.notification_manager.show_info("Đây là thông báo thông tin cho người dùng.")
+            self.notification_manager.show_info("Đây là thông báo thông tin cho người dùng. Bạn có thể tìm hiểu thêm trong phần Trợ giúp.")
         elif action == success_action:
-            self.notification_manager.show_success("Thao tác đã được thực hiện thành công!")
+            self.notification_manager.show_success("Thao tác đã được thực hiện thành công! Dữ liệu đã được lưu vào hệ thống.")
         elif action == warning_action:
-            self.notification_manager.show_warning("Cảnh báo! Hãy kiểm tra lại thông tin.")
+            self.notification_manager.show_warning("Cảnh báo! Hãy kiểm tra lại thông tin trước khi tiếp tục.")
         elif action == error_action:
-            self.notification_manager.show_error("Lỗi! Không thể thực hiện thao tác.")
+            self.notification_manager.show_error("Lỗi! Không thể thực hiện thao tác do thiếu thông tin bắt buộc.")
+        elif action == multiple_action:
+            # Hiển thị nhiều thông báo để kiểm tra xếp chồng
+            self.notification_manager.show_info("Thông báo thông tin #1", timeout=10000)
+            QTimer.singleShot(300, lambda: self.notification_manager.show_success("Thông báo thành công #2", timeout=9000))
+            QTimer.singleShot(600, lambda: self.notification_manager.show_warning("Thông báo cảnh báo #3", timeout=8000))
+            QTimer.singleShot(900, lambda: self.notification_manager.show_error("Thông báo lỗi #4", timeout=7000))
+            QTimer.singleShot(1200, lambda: self.notification_manager.show_info("Thông báo thông tin #5", timeout=6000))
     
     def show_about(self):
         """Hiển thị hộp thoại giới thiệu về ứng dụng."""
@@ -569,6 +516,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         """Xử lý sự kiện đóng cửa sổ."""
         try:
+            # Lưu trạng thái cửa sổ
+            self.save_window_state()
+            
             reply = QMessageBox.question(
                 self, "Xác nhận thoát", 
                 "Bạn có chắc muốn thoát khỏi ứng dụng?",
@@ -610,3 +560,91 @@ class MainWindow(QMainWindow):
             logging.error(f"Lỗi khi đóng ứng dụng: {e}")
             # Đảm bảo ứng dụng đóng ngay cả khi có lỗi
             event.accept()
+    
+    def load_icon(self, path):
+        """Load icon từ đường dẫn, trả về QIcon trống nếu không tìm thấy file"""
+        if os.path.exists(path):
+            return QIcon(path)
+        return QIcon()
+
+    def create_menu_bar(self):
+        """Tạo menu bar cho ứng dụng"""
+        menubar = self.menuBar()
+        
+        # Menu Hệ thống
+        system_menu = menubar.addMenu("Hệ thống")
+        
+        # Action đổi mật khẩu
+        change_password_action = QAction("Đổi mật khẩu", self)
+        change_password_action.setShortcut("Ctrl+P")
+        change_password_action.triggered.connect(self.change_password)
+        system_menu.addAction(change_password_action)
+        
+        # Removed theme menu
+        system_menu.addSeparator()
+        
+        # Action thoát
+        exit_action = QAction("Thoát", self)
+        exit_action.setShortcut("Ctrl+Q")
+        exit_action.triggered.connect(self.close)
+        system_menu.addAction(exit_action)
+        
+        # Menu trích xuất
+        export_menu = menubar.addMenu("Trích xuất")        
+        export_students_action = QAction("Danh sách sinh viên", self)        
+        export_students_action.triggered.connect(self.export_students)        
+        export_menu.addAction(export_students_action)        
+        
+        export_courses_action = QAction("Danh sách khóa học", self)        
+        export_courses_action.triggered.connect(self.export_courses)        
+        export_menu.addAction(export_courses_action)
+        
+        export_report_action = QAction("Báo cáo thống kê", self)        
+        export_report_action.triggered.connect(self.export_report)        
+        export_menu.addAction(export_report_action)        
+        
+        # Menu trợ giúp        
+        help_menu = menubar.addMenu("Trợ giúp")        
+        
+        about_action = QAction("Giới thiệu", self)        
+        about_action.triggered.connect(self.show_about)        
+        help_menu.addAction(about_action)
+        
+    def create_toolbar(self):        
+        """Tạo toolbar với các chức năng thường dùng"""        
+        toolbar = self.addToolBar("Main Toolbar")        
+        toolbar.setIconSize(QSize(24, 24))        
+        toolbar.setMovable(False)
+        
+        icons_path = "resources/icons/"
+        
+        # Thêm nút thông báo
+        notification_action = QAction(QIcon(icons_path + "notification.png"), "Thông báo", self)
+        notification_action.triggered.connect(self.show_test_notification)
+        toolbar.addAction(notification_action)
+        
+        # Removed theme button
+        
+    def save_window_state(self):
+        """Lưu trạng thái cửa sổ vào cài đặt"""
+        if not self.isMaximized():
+            self.config_manager.set("ui", "window_width", self.width())
+            self.config_manager.set("ui", "window_height", self.height())
+        self.config_manager.set("ui", "window_maximized", self.isMaximized())
+        self.config_manager.save_config()
+
+    def restore_window_state(self):
+        """Khôi phục trạng thái cửa sổ từ cài đặt"""
+        if self.config_manager.get("ui", "remember_window_size", True):
+            width = self.config_manager.get("ui", "window_width", 1280)
+            height = self.config_manager.get("ui", "window_height", 800)
+            maximized = self.config_manager.get("ui", "window_maximized", False)
+            
+            # Điều chỉnh kích thước dựa trên màn hình hiện tại
+            screen_rect = QApplication.primaryScreen().availableGeometry()
+            width = min(width, screen_rect.width() - 50)
+            height = min(height, screen_rect.height() - 50)
+            
+            self.resize(width, height)
+            if maximized:
+                self.showMaximized()

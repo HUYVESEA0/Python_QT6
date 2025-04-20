@@ -105,22 +105,29 @@ class EnrollmentView(QWidget):
         search_layout.addWidget(self.refresh_button)
         
         # Tạo bảng hiển thị danh sách đăng ký
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels([
-            "Mã SV", "Tên sinh viên", "Mã KH", "Tên khóa học", "Điểm"
+        self.enrollment_table = QTableWidget()
+        self.enrollment_table.setColumnCount(5)
+        self.enrollment_table.setHorizontalHeaderLabels([
+            "Mã đăng ký", "Sinh viên", "Khóa học", "Ngày đăng ký", "Điểm"
         ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.clicked.connect(self.on_table_clicked)
+        
+        # Cải thiện hiển thị bằng cách điều chỉnh độ rộng cột phù hợp
+        self.enrollment_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # Mã đăng ký - ngắn gọn
+        self.enrollment_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # Sinh viên - có thể dài
+        self.enrollment_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch) # Khóa học - có thể dài
+        self.enrollment_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Ngày - độ dài cố định
+        self.enrollment_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Điểm - ngắn gọn
+        
+        self.enrollment_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.enrollment_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.enrollment_table.clicked.connect(self.on_table_clicked)
         
         # Thêm các widget vào layout chính
         main_layout.addWidget(form_group)
         main_layout.addLayout(button_layout)
         main_layout.addLayout(search_layout)
         main_layout.addWidget(QLabel("Danh sách đăng ký:"))
-        main_layout.addWidget(self.table)
+        main_layout.addWidget(self.enrollment_table)
         
         self.setLayout(main_layout)
         
@@ -166,29 +173,29 @@ class EnrollmentView(QWidget):
         Args:
             enrollments (list): Danh sách các bản ghi đăng ký
         """
-        self.table.setRowCount(0)
+        self.enrollment_table.setRowCount(0)
         
         for row, enrollment in enumerate(enrollments):
-            self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(enrollment['student_id']))
-            self.table.setItem(row, 1, QTableWidgetItem(enrollment['full_name']))
-            self.table.setItem(row, 2, QTableWidgetItem(enrollment['course_id']))
-            self.table.setItem(row, 3, QTableWidgetItem(enrollment['course_name']))
+            self.enrollment_table.insertRow(row)
+            self.enrollment_table.setItem(row, 0, QTableWidgetItem(enrollment['student_id']))
+            self.enrollment_table.setItem(row, 1, QTableWidgetItem(enrollment['full_name']))
+            self.enrollment_table.setItem(row, 2, QTableWidgetItem(enrollment['course_id']))
+            self.enrollment_table.setItem(row, 3, QTableWidgetItem(enrollment['course_name']))
             
             # Hiển thị điểm nếu có
             grade_text = str(enrollment['grade']) if enrollment['grade'] is not None else "Chưa có"
-            self.table.setItem(row, 4, QTableWidgetItem(grade_text))
+            self.enrollment_table.setItem(row, 4, QTableWidgetItem(grade_text))
             
             # Lưu ID đăng ký vào item để sử dụng sau này
-            self.table.item(row, 0).setData(Qt.ItemDataRole.UserRole, enrollment['enrollment_id'])
+            self.enrollment_table.item(row, 0).setData(Qt.ItemDataRole.UserRole, enrollment['enrollment_id'])
     
     def on_table_clicked(self):
         """Xử lý sự kiện khi người dùng chọn một dòng trong bảng."""
-        selected_row = self.table.currentRow()
+        selected_row = self.enrollment_table.currentRow()
         if selected_row >= 0:
-            enrollment_id = self.table.item(selected_row, 0).data(Qt.ItemDataRole.UserRole)
-            student_id = self.table.item(selected_row, 0).text()
-            course_id = self.table.item(selected_row, 2).text()
+            enrollment_id = self.enrollment_table.item(selected_row, 0).data(Qt.ItemDataRole.UserRole)
+            student_id = self.enrollment_table.item(selected_row, 0).text()
+            course_id = self.enrollment_table.item(selected_row, 2).text()
             
             # Lưu thông tin đăng ký đã chọn
             self.selected_enrollment = {

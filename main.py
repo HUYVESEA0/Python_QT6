@@ -1,15 +1,19 @@
 import sys
 import os
 import traceback
-from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen
+import logging
+from PyQt6.QtWidgets import QApplication, QMessageBox, QSplashScreen, QDialog
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap
-from views.main_window import MainWindow
-from views.login_dialog import LoginDialog
+
 from utils.logger import Logger
 from utils.path_helper import PathHelper
-from DB.db_manager import DatabaseManager
+from utils.config_manager import ConfigManager
+from utils.cleanup import cleanup_temp_files
+from views.main_window import MainWindow
+from views.login_dialog import LoginDialog
 from controllers.user_controller import UserController
+from utils.initialize_data import initialize_all_data
 
 def exception_hook(exc_type, exc_value, exc_traceback):
     """Xử lý ngoại lệ không bắt được"""
@@ -27,88 +31,121 @@ def exception_hook(exc_type, exc_value, exc_traceback):
     error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
     error_dialog.exec()
 
-def main():
-    """Hàm chính khởi động ứng dụng."""
+def close_database(db_manager):
+    """Đóng kết nối cơ sở dữ liệu an toàn"""
     try:
-        # Thiết lập exception hook
+        if db_manager and hasattr(db_manager, 'close'):
+            db_manager.close()
+            logging.info("Đã đóng kết nối cơ sở dữ liệu")
+    except Exception as e:
+        logging.error(f"Lỗi khi đóng kết nối cơ sở dữ liệu: {str(e)}")
+
+def main():
+    """Hàm chính khởi động ứng dụng với giao diện mới."""
+    db_manager = None
+    app = None
+    
+    try:
+        # Thiết lập xử lý ngoại lệ toàn cục
         sys.excepthook = exception_hook
         
-        # Thiết lập logging
-        Logger.setup(log_file="logs/student_management.log")
+        # Tạo ConfigManager để quản lý cấu hình và kiểm tra phụ thuộc
+        config_manager = ConfigManager()
         
-        # Tạo thư mục data nếu chưa tồn tại
-        PathHelper.ensure_dir("data")
+        # Ensure the config_manager has loaded properly
+        logging.info("ConfigManager initialized")
         
-        # Khởi tạo ứng dụng
-        app = QApplication(sys.argv)
-        app.setApplicationName("Hệ thống Quản lý Sinh viên")
-        app.setOrganizationName("MyOrg")
+        # Check if database path exists
+        db_path = config_manager.get_db_path()
+        logging.info(f"Database path: {db_path}")
         
-        # Hiển thị splash screen
-        splash_path = PathHelper.get_resource_path("resources/images/splash.png")
-        if os.path.exists(splash_path):
-            splash_pixmap = QPixmap(splash_path)
-            splash = QSplashScreen(splash_pixmap, Qt.WindowType.WindowStaysOnTopHint)
-            splash.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
-            splash.show()
-            app.processEvents()
-        else:
-            splash = None
+        if not db_path:
+            raise ValueError("Không thể xác định đường dẫn đến cơ sở dữ liệu")
         
-        # Tùy chỉnh kiểu dáng nếu có file CSS
-        style_path = PathHelper.get_resource_path("resources/styles/styles.qss")
-        if os.path.exists(style_path):
-            try:
-                with open(style_path, "r", encoding="utf-8") as f:
-                    app.setStyleSheet(f.read())
-            except Exception as e:
-                Logger.log_exception(e)
-        
-        # Khởi tạo database manager
-        db_manager = DatabaseManager()
-        
-        # Khởi tạo user controller
-        user_controller = UserController(db_manager)
-        
-        # Biến lưu thông tin người dùng đăng nhập
-        current_user = None
-        
-        def on_login_successful(user):
-            nonlocal current_user
-            current_user = user
-        
-        # Đợi một chút (để hiển thị splash đủ lâu)
-        if splash:
-            QTimer.singleShot(1500, lambda: splash.finish(None))
-        
-        # Hiển thị màn hình đăng nhập
-        login_dialog = LoginDialog(user_controller)
-        login_dialog.loginSuccessful.connect(on_login_successful)
-        
-        # Nếu đăng nhập thành công, hiển thị cửa sổ chính
-        if login_dialog.exec():
-            # Khởi tạo cửa sổ chính với thông tin người dùng
-            window = MainWindow(current_user)
-            window.show()
+        # Kiểm tra phụ thuộc
+        if not config_manager.check_all_required_dependencies():
+            # Lấy danh sách các gói bị thiếu
+            missing_packages = []
+            for module_name, pip_package in config_manager.required_packages.items():
+                if not config_manager.check_dependency(module_name):
+                    missing_packages.append(pip_package)
+                    
+            # Hiển thị thông báo lỗi
+            error_msg = "Thiếu các thư viện bắt buộc: " + ", ".join(missing_packages)
+            QMessageBox.critical(None, "Lỗi phụ thuộc", 
+                                f"{error_msg}\n\nVui lòng cài đặt các thư viện trên bằng lệnh:\npip install {' '.join(missing_packages)}")
+            return
             
-            # Chạy ứng dụng
-            sys.exit(app.exec())
+        # Tạo ứng dụng
+        app = QApplication(sys.argv)
+        app.setStyle('Fusion')  # Thiết lập kiểu giao diện
+        
+        # Dọn dẹp file tạm từ phiên trước (nếu có)
+        cleanup_temp_files()
+        
+        # Khởi tạo quản lý cơ sở dữ liệu
+        try:
+            from DB.db_manager import DatabaseManager
+            db_path = config_manager.get_db_path()
+            if not db_path:
+                raise ValueError("Không thể xác định đường dẫn đến cơ sở dữ liệu")
+                
+            db_manager = DatabaseManager(db_path)
+            # Kiểm tra kết nối đến cơ sở dữ liệu
+            if not db_manager.check_database_integrity():
+                raise ConnectionError("Kiểm tra tính toàn vẹn cơ sở dữ liệu thất bại")
+            
+            # Initialize application data
+            initialize_all_data(db_path)
+                
+            user_controller = UserController(db_manager)
+        except Exception as e:
+            logging.critical(f"Lỗi khởi tạo cơ sở dữ liệu: {str(e)}")
+            QMessageBox.critical(None, "Lỗi cơ sở dữ liệu", 
+                               f"Không thể kết nối đến cơ sở dữ liệu: {str(e)}")
+            return
+        
+        # Hiển thị dialog đăng nhập
+        login_dialog = LoginDialog(user_controller)
+        login_result = login_dialog.exec()
+        
+        if login_result == QDialog.DialogCode.Accepted:
+            try:
+                current_user = login_dialog.get_user()
+                if not current_user:
+                    raise ValueError("Không thể lấy thông tin người dùng sau khi đăng nhập")
+                
+                # Khởi tạo và hiển thị cửa sổ chính
+                window = MainWindow(current_user)
+                
+                # Kết nối sự kiện đóng ứng dụng với việc đóng cơ sở dữ liệu
+                app.aboutToQuit.connect(lambda: close_database(db_manager))
+                
+                window.show()
+                
+                # Chạy vòng lặp sự kiện
+                return app.exec()
+            except Exception as e:
+                logging.critical(f"Lỗi khởi tạo cửa sổ chính: {str(e)}")
+                QMessageBox.critical(None, "Lỗi ứng dụng", 
+                                   f"Không thể khởi tạo cửa sổ chính: {str(e)}")
+                # Đảm bảo cơ sở dữ liệu được đóng
+                close_database(db_manager)
+                return 1
         else:
-            # Người dùng đã hủy đăng nhập
-            db_manager.close()
-            sys.exit(0)
+            logging.info("Người dùng đã hủy đăng nhập")
+            close_database(db_manager)
+            return 0
             
     except Exception as e:
-        Logger.log_exception(f"Lỗi khởi động ứng dụng: {e}")
-        
-        error_dialog = QMessageBox()
-        error_dialog.setIcon(QMessageBox.Icon.Critical)
-        error_dialog.setWindowTitle("Lỗi khởi động")
-        error_dialog.setText("Không thể khởi động ứng dụng")
-        error_dialog.setInformativeText(str(e))
-        error_dialog.setDetailedText(traceback.format_exc())
-        error_dialog.exec()
-        sys.exit(1)
+        logging.critical(f"Lỗi không xử lý được: {str(e)}")
+        QMessageBox.critical(None, "Lỗi không xử lý được", str(e))
+        # Đảm bảo cơ sở dữ liệu được đóng
+        close_database(db_manager)
+        return 1
+    finally:
+        # Đảm bảo dọn dẹp tài nguyên ngay cả khi có lỗi
+        cleanup_temp_files()
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

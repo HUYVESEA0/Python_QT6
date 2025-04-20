@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, 
                             QLabel, QLineEdit, QComboBox, QPushButton, 
                             QTableWidget, QTableWidgetItem, QHeaderView, 
-                            QMessageBox, QGroupBox, QTabWidget, QTextBrowser)
+                            QMessageBox, QGroupBox, QTabWidget, QTextBrowser,QApplication)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 import logging
@@ -268,9 +268,32 @@ class ReportView(QWidget):
     def load_grade_distribution(self):
         """Tải phân phối điểm số và hiển thị trong bảng."""
         try:
+            # Hiển thị trạng thái đang tải
+            old_cursor = self.cursor()
+            self.setCursor(Qt.CursorShape.WaitCursor)
+            self.grades_table.setRowCount(0)
+            
+            # Thêm thông báo tải
+            loading_row = self.grades_table.rowCount()
+            self.grades_table.insertRow(loading_row)
+            loading_item = QTableWidgetItem("Đang tải dữ liệu...")
+            self.grades_table.setItem(loading_row, 0, loading_item)
+            QApplication.processEvents()
+            
+            # Tải dữ liệu
             grade_distribution = self.report_controller.get_grade_distribution()
             
+            # Xóa thông báo tải
             self.grades_table.setRowCount(0)
+            
+            if not grade_distribution:
+                # Hiển thị thông báo nếu không có dữ liệu
+                self.grades_table.insertRow(0)
+                self.grades_table.setItem(0, 0, QTableWidgetItem("Không có dữ liệu điểm"))
+                self.grades_table.setSpan(0, 0, 1, 2)
+                self.setCursor(old_cursor)
+                return
+                
             row = 0
             for grade_range, count in grade_distribution.items():
                 self.grades_table.insertRow(row)
@@ -296,8 +319,12 @@ class ReportView(QWidget):
                 elif "F" in grade_range:
                     self.grades_table.item(row, 0).setBackground(QColor(255, 180, 180)) # Đỏ nhạt
                     self.grades_table.item(row, 1).setBackground(QColor(255, 180, 180))
-                    
+            
+            # Khôi phục con trỏ
+            self.setCursor(old_cursor)
+                        
         except Exception as e:
+            self.setCursor(old_cursor)  # Đảm bảo khôi phục con trỏ trong mọi trường hợp
             logging.error(f"Lỗi khi tải phân phối điểm: {e}")
             QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu phân phối điểm: {str(e)}")
     

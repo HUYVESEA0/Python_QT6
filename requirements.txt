@@ -1,9 +1,18 @@
+# Các gói bắt buộc cho các chức năng cốt lõi
 PyQt6>=6.4.0
-cryptography>=39.0.0
-pillow>=9.4.0
-openpyxl>=3.0.10
-xlsxwriter>=3.0.9
-reportlab>=3.6.12
-pandas>=1.5.3
-pyjwt>=2.6.0
-matplotlib>=3.7.0
+PyJWT>=2.6.0
+python-dotenv>=1.0.0
+
+# Các gói tùy chọn cho tính năng nâng cao
+# Biểu đồ và trực quan hóa dữ liệu
+matplotlib>=3.6.0
+
+# Xử lý dữ liệu và báo cáo
+pandas>=1.5.0
+
+# Xuất dữ liệu sang các định dạng khác nhau
+reportlab>=3.6.0  # Để xuất PDF
+openpyxl>=3.0.0   # Để xuất Excel
+
+# Bảo mật và mã hóa
+cryptography>=38.0.0

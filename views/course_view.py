@@ -1,8 +1,9 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, 
                           QLabel, QLineEdit, QSpinBox, QPushButton, 
                           QTableWidget, QTableWidgetItem, QHeaderView, 
-                          QMessageBox, QGroupBox, QTextEdit)
+                          QMessageBox, QGroupBox, QTextEdit, QMenu)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction, QIcon
 from models.course import Course
 import logging
 
@@ -100,25 +101,76 @@ class CourseView(QWidget):
         search_layout.addWidget(self.refresh_button)
         
         # Tạo bảng hiển thị danh sách khóa học
+        table_layout = QVBoxLayout()
+        
+        table_label = QLabel("Danh sách khóa học:")
+        table_label.setStyleSheet("font-weight: bold; color: #333;")
+        table_layout.addWidget(table_label)
+        
+        # Thêm bộ lọc nhanh
+        from widgets.quick_filter_widget import QuickFilterWidget
+        
+        filter_fields = {
+            "credits": {
+                "label": "Số tín chỉ", 
+                "type": "combobox",
+                "options": [(f"{i} tín chỉ", i) for i in range(1, 11)]
+            }
+        }
+        
+        self.quick_filter = QuickFilterWidget(filter_fields)
+        self.quick_filter.filterChanged.connect(self.apply_quick_filters)
+        table_layout.addWidget(self.quick_filter)
+        
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            "Mã KH", "Tên khóa học", "Tín chỉ", "Giảng viên", 
-            "Mô tả", "SV tối đa"
+            "Mã khóa học", "Tên khóa học", "Tín chỉ", 
+            "Giảng viên", "Mô tả", "Số SV tối đa"
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.setAlternatingRowColors(True)
         self.table.clicked.connect(self.on_table_clicked)
+        
+        # Thêm chức năng sắp xếp khi click vào header
+        self.table.horizontalHeader().setSortIndicatorShown(True)
+        self.table.horizontalHeader().sortIndicatorChanged.connect(self.sort_table)
+        
+        table_layout.addWidget(self.table)
+        
+        # Hiển thị tổng số khóa học và phân trang
+        footer_layout = QHBoxLayout()
+        
+        self.total_courses_label = QLabel("Tổng số: 0 khóa học")
+        self.total_courses_label.setStyleSheet("font-weight: bold;")
+        footer_layout.addWidget(self.total_courses_label)
+        
+        footer_layout.addStretch()
+        
+        # Thêm phân trang
+        from widgets.pagination_widget import PaginationWidget
+        
+        self.pagination = PaginationWidget()
+        self.pagination.pageChanged.connect(self.change_page)
+        self.pagination.pageSizeChanged.connect(self.change_page_size)
+        footer_layout.addWidget(self.pagination)
+        
+        table_layout.addLayout(footer_layout)
         
         # Thêm các widget vào layout chính
         main_layout.addWidget(form_group)
         main_layout.addLayout(button_layout)
         main_layout.addLayout(search_layout)
-        main_layout.addWidget(QLabel("Danh sách khóa học:"))
-        main_layout.addWidget(self.table)
+        main_layout.addLayout(table_layout)
         
         self.setLayout(main_layout)
+        
+        # Khởi tạo biến phân trang
+        self.current_page = 1
+        self.page_size = 20
+        self.filtered_courses = []
         
         # Tải danh sách khóa học
         self.load_courses()
@@ -126,7 +178,9 @@ class CourseView(QWidget):
     def load_courses(self):
         """Tải danh sách khóa học từ cơ sở dữ liệu và hiển thị lên bảng."""
         courses = self.course_controller.get_all_courses()
-        self.populate_table(courses)
+        self.filtered_courses = courses
+        self.pagination.update_total_items(len(courses))
+        self.populate_table_with_pagination()
     
     def populate_table(self, courses):
         """
@@ -145,6 +199,87 @@ class CourseView(QWidget):
             self.table.setItem(row, 3, QTableWidgetItem(course.instructor))
             self.table.setItem(row, 4, QTableWidgetItem(course.description))
             self.table.setItem(row, 5, QTableWidgetItem(str(course.max_students)))
+    
+    def populate_table_with_pagination(self):
+        """Hiển thị dữ liệu trên trang hiện tại"""
+        start_idx = (self.current_page - 1) * self.page_size
+        
+        # Nếu page_size là -1 thì hiển thị tất cả
+        if self.page_size == -1:
+            courses_to_show = self.filtered_courses
+        else:
+            courses_to_show = self.filtered_courses[start_idx:start_idx + self.page_size]
+        
+        self.populate_table(courses_to_show)
+        self.total_courses_label.setText(f"Tổng số: {len(self.filtered_courses)} khóa học")
+    
+    def change_page(self, page):
+        """Xử lý khi thay đổi trang"""
+        self.current_page = page
+        self.populate_table_with_pagination()
+    
+    def change_page_size(self, size):
+        """Xử lý khi thay đổi số lượng mục trên trang"""
+        self.page_size = size
+        self.current_page = 1  # Reset về trang đầu tiên
+        self.populate_table_with_pagination()
+    
+    def apply_quick_filters(self, filters):
+        """
+        Áp dụng bộ lọc nhanh và hiển thị kết quả
+        
+        Args:
+            filters (dict): Dictionary chứa các bộ lọc
+        """
+        # Lấy tất cả khóa học
+        all_courses = self.course_controller.get_all_courses()
+        
+        # Áp dụng bộ lọc
+        filtered_courses = all_courses
+        
+        for field, value in filters.items():
+            if field == "credits" and value:
+                filtered_courses = [c for c in filtered_courses if c.credits == int(value)]
+            elif field == "search_text" and value:
+                search_text = value.lower()
+                filtered_courses = [c for c in filtered_courses if 
+                                  search_text in c.course_id.lower() or
+                                  search_text in c.course_name.lower() or
+                                  search_text in (c.instructor.lower() if c.instructor else "")]
+        
+        # Cập nhật dữ liệu hiển thị
+        self.filtered_courses = filtered_courses
+        self.pagination.update_total_items(len(filtered_courses))
+        self.current_page = 1  # Reset về trang đầu tiên
+        self.populate_table_with_pagination()
+    
+    def sort_table(self, column_index, order):
+        """
+        Sắp xếp bảng dữ liệu theo cột được chọn
+        
+        Args:
+            column_index (int): Chỉ số cột
+            order (Qt.SortOrder): Thứ tự sắp xếp
+        """
+        # Các trường tương ứng với cột trong bảng
+        column_fields = [
+            "course_id", "course_name", "credits", 
+            "instructor", "description", "max_students"
+        ]
+        
+        if 0 <= column_index < len(column_fields):
+            field = column_fields[column_index]
+            
+            # Sắp xếp dữ liệu
+            reverse_order = (order == Qt.SortOrder.DescendingOrder)
+            
+            self.filtered_courses.sort(
+                key=lambda c: getattr(c, field) if getattr(c, field) is not None else "",
+                reverse=reverse_order
+            )
+            
+            # Cập nhật hiển thị
+            self.populate_table_with_pagination()
     
     def on_table_clicked(self):
         """Xử lý sự kiện khi người dùng chọn một dòng trong bảng."""
@@ -282,17 +417,17 @@ class CourseView(QWidget):
     def search_courses(self):
         """Tìm kiếm khóa học theo từ khóa."""
         keyword = self.search_input.text().strip()
-        if not keyword:
-            self.load_courses()
-            return
         
-        courses = self.course_controller.search_courses(keyword)
-        self.populate_table(courses)
+        # Thêm từ khóa tìm kiếm vào bộ lọc nhanh
+        filters = self.quick_filter.current_filters.copy()
+        if keyword:
+            filters["search_text"] = keyword
+        else:
+            if "search_text" in filters:
+                del filters["search_text"]
         
-        if not courses:
-            QMessageBox.information(
-                self, "Kết quả tìm kiếm", "Không tìm thấy khóa học nào!"
-            )
+        # Áp dụng bộ lọc
+        self.apply_quick_filters(filters)
     
     def validate_form_data(self):
         """

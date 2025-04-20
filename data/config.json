@@ -6,22 +6,33 @@
         "max_log_files": 10,
         "max_backup_files": 5,
         "auto_backup": true,
-        "backup_interval_days": 7
+        "backup_interval_days": 7,
+        "environment": "development",
+        "log_level": "INFO"
     },
     "database": {
         "name": "student_management.db",
-        "backup_on_exit": true
+        "backup_on_exit": true,
+        "path": "data/student_db.db"
     },
     "ui": {
         "theme": "light",
         "font_size": 10,
         "show_welcome": true,
         "table_rows_per_page": 50,
-        "notification_duration": 3000
+        "notification_duration": 3000,
+        "window_width": 200,
+        "window_height": 100,
+        "window_maximized": false
     },
     "export": {
         "default_format": "excel",
         "default_directory": "exports",
         "include_headers": true
+    },
+    "security": {
+        "secret_key": "your-secure-secret-key-here",
+        "algorithm": "HS256",
+        "token_expiry_hours": 24
     }
 }

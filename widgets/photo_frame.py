@@ -5,9 +5,8 @@ from PyQt6.QtCore import Qt, pyqtSignal, QRect, QSize, QPoint
 from PyQt6.QtGui import QPixmap, QImage, QIcon, QPainter, QPen, QColor, QBrush, QTransform, QAction
 import os
 import logging
-import shutil
-from PIL import Image, ImageQt
 from utils.path_helper import PathHelper
+from utils.cleanup import cleanup_temp_files
 
 class CropDialog(QDialog):
     """Dialog để cắt ảnh"""
@@ -392,6 +391,7 @@ class PhotoFrame(QWidget):
     
     def cleanup_temp_files(self):
         """Xóa tất cả các file ảnh tạm đã tạo"""
+        # Xóa các file tạm của instance này
         for temp_file in self.temp_files:
             try:
                 if os.path.exists(temp_file):
@@ -402,14 +402,9 @@ class PhotoFrame(QWidget):
         
         self.temp_files.clear()
         
-        # Dọn dẹp thư mục temp nếu trống
-        try:
-            if os.path.exists("temp") and not os.listdir("temp"):
-                os.rmdir("temp")
-                logging.info("Đã xóa thư mục temp rỗng")
-        except Exception as e:
-            logging.error(f"Không thể xóa thư mục temp: {str(e)}")
-                
+        # Sử dụng chức năng dọn dẹp tổng quát
+        cleanup_temp_files()
+    
     def apply_filter(self, filter_type="grayscale"):
         """Áp dụng bộ lọc cho ảnh"""
         if not self.original_pixmap or self.photo_path == "":

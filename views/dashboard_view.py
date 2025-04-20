@@ -1,9 +1,11 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QGroupBox, QGridLayout, QPushButton, QFrame,
                              QSplitter, QScrollArea, QSpacerItem, QSizePolicy,
-                             QComboBox, QMessageBox)
-from PyQt6.QtCore import Qt, QSize, QTimer
-from PyQt6.QtGui import QFont, QIcon, QColor, QPainter, QPen, QAction
+                             QComboBox, QMessageBox, QGraphicsDropShadowEffect,
+                             QStackedWidget)
+from PyQt6.QtCore import Qt, QSize, QTimer, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QFont, QIcon, QColor, QPainter, QPen, QAction, QPixmap
+from widgets.empty_state_widget import EmptyStateWidget
 import logging
 import os
 
@@ -116,6 +118,18 @@ class ChartWidget(QWidget):
         if not self.has_matplotlib:
             return
         
+        # Thêm sự kiểm tra khi không có dữ liệu
+        if not x_data or not y_data:
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.text(0.5, 0.5, "Không có dữ liệu", 
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=12, color='gray')
+            ax.axis('off')
+            self.canvas.draw()
+            return
+        
         # Xóa biểu đồ cũ
         self.figure.clear()
         
@@ -154,6 +168,18 @@ class ChartWidget(QWidget):
             colors: Các màu sắc (tùy chọn)
         """
         if not self.has_matplotlib:
+            return
+        
+        # Thêm sự kiểm tra khi không có dữ liệu
+        if not sizes or sum(sizes) == 0:
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.text(0.5, 0.5, "Không có dữ liệu", 
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=12, color='gray')
+            ax.axis('off')
+            self.canvas.draw()
             return
         
         # Xóa biểu đồ cũ
@@ -226,6 +252,118 @@ class ChartWidget(QWidget):
         
         # Cập nhật canvas
         self.canvas.draw()
+        
+    # Thêm biểu đồ phân phối điểm số
+    def plot_grade_distribution(self, grade_data, title="Phân phối điểm số"):
+        """
+        Vẽ biểu đồ phân phối điểm số
+        
+        Args:
+            grade_data (dict): Dict với key là khoảng điểm, value là số lượng
+            title (str): Tiêu đề biểu đồ
+        """
+        if not self.has_matplotlib:
+            return
+            
+        # Kiểm tra dữ liệu trống
+        if not grade_data:
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.text(0.5, 0.5, "Không có dữ liệu điểm số", 
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=12, color='gray')
+            ax.axis('off')
+            self.canvas.draw()
+            return
+            
+        # Xóa biểu đồ cũ
+        self.figure.clear()
+        
+        # Tạo subplot
+        ax = self.figure.add_subplot(111)
+        
+        # Chuẩn bị dữ liệu
+        categories = list(grade_data.keys())
+        values = list(grade_data.values())
+        colors = ['#d50000', '#ff6d00', '#ffeb3b', '#8bc34a', '#00c853']  # Màu từ đỏ đến xanh
+        
+        # Vẽ biểu đồ cột
+        bars = ax.bar(categories, values, color=colors)
+        
+        # Thêm nhãn giá trị trên mỗi cột
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                    f'{height}', ha='center', va='bottom')
+        
+        # Thiết lập tiêu đề và nhãn
+        ax.set_title(title)
+        ax.set_xlabel("Khoảng điểm")
+        ax.set_ylabel("Số lượng sinh viên")
+        
+        # Hiển thị lưới
+        ax.grid(True, linestyle='--', alpha=0.7, axis='y')
+        
+        # Cập nhật canvas
+        self.canvas.draw()
+        
+    # Thêm biểu đồ tỷ lệ giới tính
+    def plot_gender_distribution(self, gender_data, title="Tỷ lệ giới tính"):
+        """
+        Vẽ biểu đồ tỷ lệ giới tính
+        
+        Args:
+            gender_data (dict): Dict với key là giới tính, value là số lượng
+            title (str): Tiêu đề biểu đồ
+        """
+        if not self.has_matplotlib:
+            return
+            
+        # Kiểm tra dữ liệu trống
+        if not gender_data or sum(gender_data.values()) == 0:
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.text(0.5, 0.5, "Không có dữ liệu về giới tính", 
+                    horizontalalignment='center',
+                    verticalalignment='center',
+                    fontsize=12, color='gray')
+            ax.axis('off')
+            self.canvas.draw()
+            return
+            
+        # Xóa biểu đồ cũ
+        self.figure.clear()
+        
+        # Tạo subplot
+        ax = self.figure.add_subplot(111)
+        
+        # Chuẩn bị dữ liệu
+        labels = list(gender_data.keys())
+        sizes = list(gender_data.values())
+        colors = ['#2979ff', '#f06292', '#9c27b0']  # Nam, Nữ, Khác
+        
+        # Vẽ biểu đồ tròn
+        wedges, texts, autotexts = ax.pie(
+            sizes, labels=labels, autopct='%1.1f%%',
+            shadow=False, startangle=90, colors=colors
+        )
+        
+        # Thiết lập font cho văn bản
+        for text in texts:
+            text.set_fontsize(10)
+        for autotext in autotexts:
+            autotext.set_fontsize(9)
+            autotext.set_color('white')
+        
+        # Thiết lập tiêu đề
+        ax.set_title(title)
+        
+        # Đảm bảo biểu đồ là hình tròn
+        ax.axis('equal')
+        
+        # Cập nhật canvas
+        self.canvas.draw()
 
 
 class DashboardView(QWidget):
@@ -268,6 +406,11 @@ class DashboardView(QWidget):
         
         main_layout.addLayout(header_layout)
         
+        # Thêm chỉ dẫn khi có quá ít dữ liệu
+        self.info_label = QLabel("Thống kê sẽ chính xác hơn khi có nhiều dữ liệu sinh viên và khóa học")
+        self.info_label.setStyleSheet("color: #757575; font-style: italic;")
+        main_layout.insertWidget(1, self.info_label)
+        
         # Khu vực cuộn cho nội dung dashboard
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -278,11 +421,26 @@ class DashboardView(QWidget):
         dashboard_layout = QVBoxLayout(dashboard_widget)
         dashboard_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Thêm các thành phần vào dashboard
+        # Thêm các thành phần vào dashboard với bố cục mới
         dashboard_layout.addLayout(self.create_statistics_section())
-        dashboard_layout.addWidget(self.create_enrollment_chart_section())
-        dashboard_layout.addWidget(self.create_student_status_section())
-        dashboard_layout.addWidget(self.create_courses_section())
+        
+        # Bố trí hàng đầu với 2 biểu đồ chính
+        row1_layout = QHBoxLayout()
+        row1_layout.addWidget(self.create_enrollment_chart_section())
+        row1_layout.addWidget(self.create_student_status_section())
+        dashboard_layout.addLayout(row1_layout)
+        
+        # Bố trí hàng thứ hai với biểu đồ khóa học và phân phối điểm số
+        row2_layout = QHBoxLayout()
+        row2_layout.addWidget(self.create_courses_section())
+        row2_layout.addWidget(self.create_grade_distribution_section())
+        dashboard_layout.addLayout(row2_layout)
+        
+        # Bố trí hàng thứ ba với biểu đồ giới tính và thống kê khác
+        row3_layout = QHBoxLayout()
+        row3_layout.addWidget(self.create_gender_distribution_section())
+        # Có thể thêm các thành phần khác vào đây
+        dashboard_layout.addLayout(row3_layout)
         
         # Thêm space để có thể cuộn xuống
         dashboard_layout.addStretch()
@@ -292,49 +450,99 @@ class DashboardView(QWidget):
         main_layout.addWidget(scroll_area)
     
     def create_statistics_section(self):
-        """Tạo khu vực hiển thị thống kê"""
+        """Tạo khu vực hiển thị thống kê với thiết kế card hiện đại"""
         layout = QGridLayout()
         layout.setContentsMargins(0, 10, 0, 10)
         layout.setSpacing(15)
         
-        # Các card thống kê
-        self.total_students_card = StatisticCard(
+        # Các card thống kê với hiệu ứng và animation
+        self.total_students_card = self.create_statistic_card(
             "Tổng số sinh viên", "...", 
             "resources/icons/student.png", "#2979ff"
         )
+        self.total_students_card.setCursor(Qt.CursorShape.PointingHandCursor)
         layout.addWidget(self.total_students_card, 0, 0)
         
-        self.total_courses_card = StatisticCard(
+        self.total_courses_card = self.create_statistic_card(
             "Tổng số khóa học", "...", 
             "resources/icons/course.png", "#00c853"
         )
         layout.addWidget(self.total_courses_card, 0, 1)
         
-        self.total_enrollments_card = StatisticCard(
+        self.total_enrollments_card = self.create_statistic_card(
             "Tổng số đăng ký", "...", 
             "resources/icons/enrollment.png", "#ff6d00"
         )
         layout.addWidget(self.total_enrollments_card, 0, 2)
         
-        self.avg_grade_card = StatisticCard(
+        self.avg_grade_card = self.create_statistic_card(
             "Điểm trung bình", "...", 
             "resources/icons/grade.png", "#d50000"
         )
         layout.addWidget(self.avg_grade_card, 1, 0)
         
-        self.max_enrollment_course_card = StatisticCard(
+        self.max_enrollment_course_card = self.create_statistic_card(
             "Khóa học nhiều SV nhất", "...", 
             "resources/icons/popular.png", "#6200ea"
         )
         layout.addWidget(self.max_enrollment_course_card, 1, 1)
         
-        self.recent_activity_card = StatisticCard(
+        self.recent_activity_card = self.create_statistic_card(
             "Hoạt động gần đây", "...", 
             "resources/icons/activity.png", "#2962ff"
         )
         layout.addWidget(self.recent_activity_card, 1, 2)
         
         return layout
+
+    def create_statistic_card(self, title, value, icon_path="", color="#2979ff"):
+        """Tạo card hiển thị thông tin thống kê với thiết kế hiện đại và animation"""
+        # Tạo frame chính với drop shadow và kiểu dáng mới
+        card = QFrame()
+        card.setObjectName("statCard")
+        card.setProperty("color", color)
+        
+        # Tạo drop shadow effect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setOffset(0, 3)
+        card.setGraphicsEffect(shadow)
+        
+        # Layout cho card
+        card_layout = QHBoxLayout(card)
+        card_layout.setContentsMargins(15, 15, 15, 15)
+        
+        # Icon (nếu có)
+        if os.path.exists(icon_path):
+            icon_label = QLabel()
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                pixmap = pixmap.scaled(32, 32, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                icon_label.setPixmap(pixmap)
+                card_layout.addWidget(icon_label)
+        
+        # Thông tin
+        info_layout = QVBoxLayout()
+        
+        # Tiêu đề
+        title_label = QLabel(title)
+        title_label.setObjectName("cardTitle")
+        info_layout.addWidget(title_label)
+        
+        # Giá trị
+        value_label = QLabel(value)
+        value_label.setObjectName("cardValue")
+        info_layout.addWidget(value_label)
+        
+        # Lưu reference để cập nhật giá trị sau
+        setattr(card, "value_label", value_label)
+        setattr(card, "title_label", title_label)
+        
+        card_layout.addLayout(info_layout)
+        card_layout.setStretch(1, 1)  # Cho phép info_layout mở rộng
+        
+        return card
     
     def create_enrollment_chart_section(self):
         """Tạo khu vực biểu đồ đăng ký khóa học"""
@@ -369,19 +577,81 @@ class DashboardView(QWidget):
         
         return group_box
     
+    # Thêm section cho phân phối điểm số
+    def create_grade_distribution_section(self):
+        """Tạo khu vực biểu đồ phân phối điểm số"""
+        group_box = QGroupBox("Phân phối điểm số")
+        layout = QVBoxLayout(group_box)
+        
+        # Widget hiển thị biểu đồ hoặc trạng thái trống
+        self.stacked_grade_widget = QStackedWidget()
+        
+        # Tạo chart widget
+        self.grade_chart = ChartWidget()
+        self.stacked_grade_widget.addWidget(self.grade_chart)
+        
+        # Tạo empty state widget
+        self.empty_grade_state = EmptyStateWidget(
+            message="Chưa có dữ liệu về điểm số.\nThêm sinh viên và đánh giá để xem thống kê.",
+            action_text="Đi đến đăng ký khóa học",
+            icon_path="resources/icons/grade.png"
+        )
+        self.empty_grade_state.actionTriggered.connect(lambda: self.parent().parent().parent().tab_widget.setCurrentIndex(3))
+        self.stacked_grade_widget.addWidget(self.empty_grade_state)
+        
+        layout.addWidget(self.stacked_grade_widget)
+        
+        return group_box
+    
+    # Thêm section cho phân phối giới tính
+    def create_gender_distribution_section(self):
+        """Tạo khu vực biểu đồ phân phối giới tính"""
+        group_box = QGroupBox("Tỷ lệ giới tính")
+        layout = QVBoxLayout(group_box)
+        
+        # Widget hiển thị biểu đồ hoặc trạng thái trống
+        self.stacked_gender_widget = QStackedWidget()
+        
+        # Tạo chart widget
+        self.gender_chart = ChartWidget()
+        self.stacked_gender_widget.addWidget(self.gender_chart)
+        
+        # Tạo empty state widget
+        self.empty_gender_state = EmptyStateWidget(
+            message="Chưa có đủ dữ liệu để hiển thị tỷ lệ giới tính.\nThêm sinh viên để xem biểu đồ.",
+            action_text="Đi đến quản lý sinh viên",
+            icon_path="resources/icons/student.png"
+        )
+        self.empty_gender_state.actionTriggered.connect(lambda: self.parent().parent().parent().tab_widget.setCurrentIndex(1))
+        self.stacked_gender_widget.addWidget(self.empty_gender_state)
+        
+        layout.addWidget(self.stacked_gender_widget)
+        
+        return group_box
+    
     def load_data(self):
-        """Tải dữ liệu thống kê và cập nhật giao diện"""
+        """Tải dữ liệu thống kê và cập nhật giao diện với trạng thái trống nếu cần"""
         try:
             # Lấy thống kê cơ bản
             stats = self.report_controller.get_student_course_statistics()
             
-            # Cập nhật các card thống kê
-            self.total_students_card.value_label.setText(str(stats.get('total_students', 0)))
-            self.total_courses_card.value_label.setText(str(stats.get('total_courses', 0)))
-            self.total_enrollments_card.value_label.setText(str(stats.get('total_enrollments', 0)))
+            # Cập nhật các card thống kê với animation
+            self.animate_value(self.total_students_card.value_label, str(stats.get('total_students', 0)))
+            self.animate_value(self.total_courses_card.value_label, str(stats.get('total_courses', 0)))
+            self.animate_value(self.total_enrollments_card.value_label, str(stats.get('total_enrollments', 0)))
             
             avg_grade = stats.get('average_grade', 0)
-            self.avg_grade_card.value_label.setText(f"{avg_grade:.1f}")
+            self.animate_value(self.avg_grade_card.value_label, f"{avg_grade:.1f}")
+            
+            # Hiển thị thông báo hữu ích nếu có ít dữ liệu
+            if stats.get('total_students', 0) < 5:
+                self.info_label.setText("Thêm ít nhất 5 sinh viên để có thống kê chính xác hơn")
+                self.info_label.setStyleSheet("color: #ff6d00; font-style: italic;")
+            elif stats.get('total_courses', 0) < 3:
+                self.info_label.setText("Thêm khóa học để có thống kê đầy đủ hơn")
+                self.info_label.setStyleSheet("color: #ff6d00; font-style: italic;")
+            else:
+                self.info_label.setText("")
             
             # Lấy khóa học có nhiều sinh viên đăng ký nhất
             top_courses = self.report_controller.get_top_courses_by_enrollment(limit=1)
@@ -400,18 +670,38 @@ class DashboardView(QWidget):
             else:
                 self.recent_activity_card.value_label.setText("Không có hoạt động")
             
-            # Vẽ biểu đồ đăng ký khóa học
+            # Vẽ các biểu đồ hiện có
             self.update_enrollment_chart()
-            
-            # Vẽ biểu đồ trạng thái sinh viên
             self.update_student_status_chart()
-            
-            # Vẽ biểu đồ khóa học theo tín chỉ
             self.update_courses_chart()
+            
+            # Vẽ biểu đồ điểm số mới
+            self.update_grade_distribution_chart()
+            
+            # Vẽ biểu đồ giới tính mới
+            self.update_gender_distribution_chart()
             
         except Exception as e:
             logging.error(f"Lỗi khi tải dữ liệu dashboard: {str(e)}")
             QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu dashboard: {str(e)}")
+    
+    def animate_value(self, label, new_value):
+        """Tạo hiệu ứng animation khi thay đổi giá trị của label"""
+        try:
+            old_value = label.text()
+            if old_value == new_value:
+                return
+                
+            # Hiệu ứng nhấp nháy khi thay đổi giá trị
+            original_style = label.styleSheet()
+            label.setStyleSheet(original_style + "; color: #ff6d00;")
+            label.setText(new_value)
+            
+            # Sử dụng QTimer để reset màu sau 500ms
+            QTimer.singleShot(500, lambda: label.setStyleSheet(original_style))
+        except Exception as e:
+            logging.error(f"Lỗi khi tạo animation: {str(e)}")
+            label.setText(new_value)
     
     def update_enrollment_chart(self):
         """Cập nhật biểu đồ đăng ký khóa học"""
@@ -470,3 +760,33 @@ class DashboardView(QWidget):
                 )
         except Exception as e:
             logging.error(f"Lỗi khi cập nhật biểu đồ khóa học: {str(e)}")
+    
+    def update_grade_distribution_chart(self):
+        """Cập nhật biểu đồ phân phối điểm số"""
+        try:
+            grade_distribution = self.report_controller.get_grade_distribution()
+            
+            if grade_distribution and sum(grade_distribution.values()) > 0:
+                self.grade_chart.plot_grade_distribution(grade_distribution)
+                self.stacked_grade_widget.setCurrentIndex(0)  # Hiển thị biểu đồ
+            else:
+                self.stacked_grade_widget.setCurrentIndex(1)  # Hiển thị trạng thái trống
+                
+        except Exception as e:
+            logging.error(f"Lỗi khi cập nhật biểu đồ phân phối điểm: {str(e)}")
+            self.stacked_grade_widget.setCurrentIndex(1)  # Hiển thị trạng thái trống nếu có lỗi
+    
+    def update_gender_distribution_chart(self):
+        """Cập nhật biểu đồ tỷ lệ giới tính"""
+        try:
+            gender_stats = self.report_controller.get_gender_statistics()
+            
+            if gender_stats and sum(gender_stats.values()) > 0:
+                self.gender_chart.plot_gender_distribution(gender_stats)
+                self.stacked_gender_widget.setCurrentIndex(0)  # Hiển thị biểu đồ
+            else:
+                self.stacked_gender_widget.setCurrentIndex(1)  # Hiển thị trạng thái trống
+                
+        except Exception as e:
+            logging.error(f"Lỗi khi cập nhật biểu đồ giới tính: {str(e)}")
+            self.stacked_gender_widget.setCurrentIndex(1)  # Hiển thị trạng thái trống nếu có lỗi

@@ -1,60 +1,55 @@
 import sqlite3
 import os
 import logging
+import secrets
 import hashlib
 import shutil
-import secrets
-import sys
 from datetime import datetime
-
-# Add the project root to Python path to resolve imports correctly
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from utils.path_helper import PathHelper
+from utils.config_manager import ConfigManager
+from .create_tables import create_tables
 
 class DatabaseManager:
     """
     Lớp quản lý kết nối và thao tác với cơ sở dữ liệu SQLite.
     """
     
-    def __init__(self, db_name="student_management.db"):
+    def __init__(self, db_path=None):
         """
-        Khởi tạo kết nối đến cơ sở dữ liệu.
+        Khởi tạo kết nối cơ sở dữ liệu
         
         Args:
-            db_name (str): Tên của file cơ sở dữ liệu
+            db_path (str, optional): Đường dẫn đến file cơ sở dữ liệu
         """
-        # Tạo thư mục data nếu không tồn tại
-        data_dir = PathHelper.get_resource_path("data")
-        PathHelper.ensure_dir(data_dir)
-        
-        # Thiết lập đường dẫn cơ sở dữ liệu
-        self.db_path = os.path.join(data_dir, db_name)
-        
-        # Tạo thư mục cho ảnh sinh viên
-        self.photos_dir = os.path.join(data_dir, "student_photos")
-        PathHelper.ensure_dir(self.photos_dir)
-        
-        # Tạo thư mục temp nếu chưa tồn tại (cho xử lý ảnh tạm thời)
-        self.temp_dir = PathHelper.get_resource_path("temp")
-        PathHelper.ensure_dir(self.temp_dir)
-        
-        # Danh sách file tạm để xử lý và xóa sau khi không dùng nữa
-        self.temp_files = []
-        
-        self.connection = None
-        self.cursor = None
-        
-        # Kết nối đến cơ sở dữ liệu
-        self.connect()
-        
-        # Tạo các bảng nếu chưa tồn tại
-        self.create_tables()
-        
-        # Tạo tài khoản admin mặc định nếu chưa có
-        self.create_default_admin()
-        
-        logging.info(f"Đã khởi tạo kết nối đến cơ sở dữ liệu: {self.db_path}")
+        try:
+            config_manager = ConfigManager()
+            
+            if db_path is None:
+                # Use the get_db_path method instead of get with 'DB_PATH' as a section
+                db_path = config_manager.get_db_path()
+            
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(db_path), exist_ok=True)
+            
+            self.db_path = db_path
+            self.connection = None
+            self.cursor = None
+            
+            # Connect to the database
+            self.connect()
+            
+            # Ensure all required tables exist
+            self.ensure_tables_exist()
+            
+            logging.info(f"Đã khởi tạo kết nối đến cơ sở dữ liệu: {self.db_path}")
+        except Exception as e:
+            logging.error(f"Error initializing database connection: {str(e)}")
+            raise
+
+    # Add a property to alias connection as conn for compatibility
+    @property
+    def conn(self):
+        """Alias for connection attribute to maintain compatibility with other code."""
+        return self.connection
 
     def connect(self):
         """Thiết lập kết nối đến cơ sở dữ liệu."""
@@ -68,18 +63,15 @@ class DatabaseManager:
             return False
 
     def close(self):
-        """Đóng kết nối cơ sở dữ liệu."""
+        """Close database connection."""
         try:
-            # Dọn dẹp tài nguyên trước khi đóng kết nối
-            self.cleanup()
-            
             if self.connection:
+                self.connection.commit()
                 self.connection.close()
                 self.connection = None
-                self.cursor = None
-                logging.info("Đã đóng kết nối đến cơ sở dữ liệu")
+                logging.info("Database connection closed successfully")
         except Exception as e:
-            logging.error(f"Lỗi khi đóng kết nối cơ sở dữ liệu: {e}")
+            logging.error(f"Error closing database connection: {e}")
 
     def commit(self):
         """Lưu các thay đổi vào cơ sở dữ liệu."""
@@ -91,6 +83,7 @@ class DatabaseManager:
         try:
             # Bảng Sinh viên
             self.cursor.execute('''
+
             CREATE TABLE IF NOT EXISTS students (
                 student_id TEXT PRIMARY KEY,
                 full_name TEXT NOT NULL,
@@ -107,6 +100,7 @@ class DatabaseManager:
             
             # Bảng Khóa học
             self.cursor.execute('''
+
             CREATE TABLE IF NOT EXISTS courses (
                 course_id TEXT PRIMARY KEY,
                 course_name TEXT NOT NULL,
@@ -119,6 +113,7 @@ class DatabaseManager:
             
             # Bảng Đăng ký khóa học
             self.cursor.execute('''
+
             CREATE TABLE IF NOT EXISTS enrollments (
                 enrollment_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 student_id TEXT,
@@ -133,6 +128,7 @@ class DatabaseManager:
             
             # Bảng Người dùng (cho đăng nhập)
             self.cursor.execute('''
+
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -148,6 +144,7 @@ class DatabaseManager:
             
             # Bảng nhật ký hoạt động
             self.cursor.execute('''
+
             CREATE TABLE IF NOT EXISTS activity_log (
                 log_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -431,7 +428,7 @@ class DatabaseManager:
         try:
             query = """
             SELECT 
-                a.log_id as id, 
+                a.log_id as log_id, -- Changed from 'id' to 'log_id'
                 a.timestamp, 
                 u.username, 
                 a.action_type, 
@@ -475,11 +472,20 @@ class DatabaseManager:
             list: Danh sách các hoạt động
         """
         query = """
-        SELECT a.*, u.username, u.full_name 
+        SELECT 
+            a.log_id as id, 
+            a.timestamp, 
+            a.user_id,
+            u.username, 
+            u.full_name,
+            a.action_type, 
+            a.action_description, 
+            a.entity_type, 
+            a.entity_id
         FROM activity_log a
         LEFT JOIN users u ON a.user_id = u.user_id
         ORDER BY a.timestamp DESC
-        LIMIT ?
+        LIMIT ?        
         """
         return self.execute_query(query, (limit,))
 
@@ -585,3 +591,33 @@ class DatabaseManager:
                 logging.error(f"Không thể xóa file tạm {temp_file}: {e}")
         
         self.temp_files.clear()
+    
+    def ensure_tables_exist(self):
+        """Ensure all required tables exist in the database."""
+        try:
+            # Check if tables exist by querying sqlite_master
+            tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
+            existing_tables = self.execute_query(tables_query)
+            existing_table_names = [table[0] for table in existing_tables] if existing_tables else []
+            
+            # Create activity_log table specifically if it's missing
+            if 'activity_log' not in existing_table_names:
+                activity_log_query = """
+                CREATE TABLE IF NOT EXISTS activity_log (
+                    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+                    user_id INTEGER,
+                    action_type TEXT,
+                    action_description TEXT,
+                    entity_type TEXT,
+                    entity_id TEXT,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                )
+                """
+                self.execute_query(activity_log_query)
+                logging.info("Created activity_log table")
+                
+            return True
+        except Exception as e:
+            logging.error(f"Error ensuring tables exist: {e}")
+            return False

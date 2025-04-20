@@ -1,7 +1,7 @@
+import jwt
 import logging
 from datetime import datetime, timedelta
-import jwt
-from .security import generate_salt, hash_password, verify_password
+from utils.config_manager import ConfigManager
 
 class AuthManager:
     """
@@ -10,8 +10,17 @@ class AuthManager:
     
     def __init__(self, db_manager):
         self.db_manager = db_manager
-        self.secret_key = "your-secret-key-here"  # Trong thực tế nên sử dụng biến môi trường
-        self.token_expiry = 24  # Thời hạn token tính bằng giờ
+        
+        # Sử dụng ConfigManager để lấy cấu hình bảo mật
+        self.config_manager = ConfigManager()
+        self.secret_key = self.config_manager.get_secret_key()
+        
+        # Lấy thời hạn token từ biến môi trường hoặc sử dụng giá trị mặc định
+        token_expiry = self.config_manager.get('TOKEN_EXPIRY_HOURS')
+        self.token_expiry = int(token_expiry) if token_expiry else 24
+        
+        # Lấy thuật toán mã hóa từ biến môi trường hoặc sử dụng mặc định
+        self.algorithm = self.config_manager.get('ENCRYPTION_ALGORITHM', 'HS256')
     
     def authenticate(self, username, password):
         """
@@ -78,6 +87,7 @@ class AuthManager:
         
         Args:
             user_data (dict): Thông tin người dùng
+            user_data (dict): Thông tin người dùng
             
         Returns:
             str: JWT token
@@ -90,11 +100,11 @@ class AuthManager:
                 'exp': datetime.utcnow() + timedelta(hours=self.token_expiry)
             }
             
-            return jwt.encode(payload, self.secret_key, algorithm='HS256')
+            return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
         except Exception as e:
             logging.error(f"Lỗi khi tạo JWT token: {e}")
             return None
-    
+
     def verify_token(self, token):
         """
         Xác minh JWT token
@@ -106,7 +116,7 @@ class AuthManager:
             dict: Thông tin người dùng nếu token hợp lệ, None nếu không
         """
         try:
-            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             
             # Kiểm tra người dùng có còn tồn tại và active
             query = """

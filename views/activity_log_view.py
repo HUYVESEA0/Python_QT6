@@ -191,67 +191,81 @@ class ActivityLogView(QWidget):
     def populate_table(self, activities):
         """Điền dữ liệu hoạt động vào bảng"""
         try:
-            # Tắt việc cập nhật giao diện để tăng hiệu suất
+            # Lưu vị trí cuộn hiện tại
+            scrollbar = self.table.verticalScrollBar()
+            scroll_position = scrollbar.value()
+            
+            # Tắt cập nhật giao diện và sắp xếp để tăng hiệu suất
             self.table.setUpdatesEnabled(False)
             self.table.setSortingEnabled(False)
             
-            # Xóa tất cả các dòng
+            # Xóa dữ liệu cũ và đặt số dòng mới
             self.table.setRowCount(0)
             
-            for row, activity in enumerate(activities):
-                self.table.insertRow(row)
+            if not activities:
+                # Hiển thị thông báo khi không có dữ liệu
+                self.table.setRowCount(1)
+                no_data_item = QTableWidgetItem("Không có hoạt động nào")
+                no_data_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(0, 0, no_data_item)
+                self.table.setSpan(0, 0, 1, 7)  # Merge tất cả các cột
                 
-                # ID
-                id_item = QTableWidgetItem(str(activity['id'] if 'id' in activity else ''))
-                self.table.setItem(row, 0, id_item)
+                # Khôi phục cập nhật giao diện
+                self.table.setUpdatesEnabled(True)
+                return
                 
-                # Thời gian
-                timestamp = activity['timestamp'] if 'timestamp' in activity else ''
-                timestamp_item = QTableWidgetItem(timestamp)
-                self.table.setItem(row, 1, timestamp_item)
+            # Thêm dữ liệu mới
+            for row_idx, activity in enumerate(activities):
+                self.table.insertRow(row_idx)
                 
-                # Username
-                username = activity['username'] if 'username' in activity else 'Hệ thống'
-                username_item = QTableWidgetItem(username)
-                self.table.setItem(row, 2, username_item)
+                # Định dạng thời gian
+                timestamp = QDateTime.fromString(activity['timestamp'], "yyyy-MM-dd hh:mm:ss")
+                formatted_time = timestamp.toString("dd/MM/yyyy hh:mm:ss")
                 
-                # Loại hoạt động
-                action_type = activity['action_type'] if 'action_type' in activity else ''
-                action_item = QTableWidgetItem(action_type)
+                # Tạo và thêm các item vào bảng
+                # Fix: Use 'log_id' instead of 'id' to match the database query
+                id_item = QTableWidgetItem(str(activity['log_id']))
+                time_item = QTableWidgetItem(formatted_time)
+                username_item = QTableWidgetItem(activity['username'] if activity['username'] else "Unknown")
+                action_item = QTableWidgetItem(activity['action_type'])
+                desc_item = QTableWidgetItem(activity['action_description'] if activity['action_description'] else "")
+                entity_item = QTableWidgetItem(activity['entity_type'] if activity['entity_type'] else "")
+                entity_id_item = QTableWidgetItem(activity['entity_id'] if activity['entity_id'] else "")
                 
-                # Màu sắc theo loại hoạt động
-                if action_type == "LOGIN":
-                    action_item.setBackground(QColor(200, 230, 200))  # Xanh lá nhạt
-                elif action_type == "LOGOUT":
-                    action_item.setBackground(QColor(230, 200, 200))  # Đỏ nhạt
-                elif action_type == "ADD":
-                    action_item.setBackground(QColor(200, 200, 230))  # Xanh dương nhạt
-                elif action_type == "UPDATE":
-                    action_item.setBackground(QColor(230, 230, 200))  # Vàng nhạt
-                elif action_type == "DELETE":
-                    action_item.setBackground(QColor(230, 200, 230))  # Tím nhạt
+                # Căn chỉnh cột thời gian và ID ở giữa
+                id_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                action_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                entity_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                entity_id_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 
-                self.table.setItem(row, 3, action_item)
+                # Đặt màu nền dựa trên loại hành động
+                if activity['action_type'] == 'DELETE':
+                    action_item.setBackground(QColor(255, 200, 200))
+                elif activity['action_type'] == 'ADD':
+                    action_item.setBackground(QColor(200, 255, 200))
+                elif activity['action_type'] == 'UPDATE':
+                    action_item.setBackground(QColor(200, 200, 255))
                 
-                # Mô tả
-                description = activity['action_description'] if 'action_description' in activity else ''
-                self.table.setItem(row, 4, QTableWidgetItem(description))
-                
-                # Đối tượng
-                entity_type = activity['entity_type'] if 'entity_type' in activity else ''
-                self.table.setItem(row, 5, QTableWidgetItem(entity_type))
-                
-                # ID Đối tượng
-                entity_id = activity['entity_id'] if 'entity_id' in activity else ''
-                self.table.setItem(row, 6, QTableWidgetItem(str(entity_id)))
+                # Thêm các item vào bảng
+                self.table.setItem(row_idx, 0, id_item)
+                self.table.setItem(row_idx, 1, time_item)
+                self.table.setItem(row_idx, 2, username_item)
+                self.table.setItem(row_idx, 3, action_item)
+                self.table.setItem(row_idx, 4, desc_item)
+                self.table.setItem(row_idx, 5, entity_item)
+                self.table.setItem(row_idx, 6, entity_id_item)
             
-            # Khôi phục tính năng cập nhật giao diện
-            self.table.setSortingEnabled(True)
+            # Khôi phục cập nhật giao diện và sắp xếp
             self.table.setUpdatesEnabled(True)
+            self.table.setSortingEnabled(True)
+            
+            # Khôi phục vị trí cuộn
+            scrollbar.setValue(scroll_position)
             
         except Exception as e:
-            logging.error(f"Lỗi khi điền dữ liệu hoạt động: {e}")
-            QMessageBox.warning(self, "Lỗi", f"Không thể hiển thị nhật ký hoạt động: {str(e)}")
+            logging.error(f"Lỗi khi điền dữ liệu vào bảng hoạt động: {e}")
+            QMessageBox.warning(self, "Lỗi", f"Không thể hiển thị dữ liệu hoạt động: {str(e)}")
     
     def export_data(self):
         """Xuất dữ liệu ra các định dạng"""

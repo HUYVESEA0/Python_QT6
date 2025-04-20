@@ -1,0 +1,8 @@
+{
+    "DEFAULT": {
+        "APP_ENV": "development"
+    },
+    "ui": {
+        "window_maximized": true
+    }
+}
