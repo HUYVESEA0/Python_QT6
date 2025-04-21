@@ -14,12 +14,49 @@ class LoginDialog(QDialog):
     # Add loginSuccessful signal
     loginSuccessful = pyqtSignal(object)
     
-    def __init__(self, user_controller):
+    def __init__(self, user_controller, theme_manager=None):
         super().__init__()
         self.user_controller = user_controller
+        self.theme_manager = theme_manager
         self.user = None
         self.settings = QSettings("XYZ University", "StudentManagementSystem")
         self.init_ui()
+        
+        # Apply current theme if theme manager was provided
+        if self.theme_manager:
+            self.theme_manager.theme_changed.connect(self.on_theme_changed)
+    
+    def on_theme_changed(self, theme_name):
+        """Handle theme changes"""
+        # Update specific UI elements for the login dialog that need theme-specific styling
+        if theme_name == "dark":
+            self.apply_dark_theme()
+        else:
+            self.apply_light_theme()
+    
+    def apply_dark_theme(self):
+        """Apply dark theme specific styles"""
+        # These are additional styles specific to the login dialog
+        # The main theme stylesheet is already applied to the application
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #2D2D30;
+            }
+            QLabel[heading="true"] {
+                color: #E1E1E1;
+            }
+            QLabel {
+                color: #E1E1E1;
+            }
+            QCheckBox {
+                color: #E1E1E1;
+            }
+        """)
+    
+    def apply_light_theme(self):
+        """Apply light theme specific styles"""
+        # Reset to default which inherits from QApplication stylesheet
+        self.setStyleSheet("")
     
     def init_ui(self):
         """Thiết lập giao diện đăng nhập"""
@@ -115,6 +152,10 @@ class LoginDialog(QDialog):
         # Connect Enter key to login function
         self.username_input.returnPressed.connect(self.login)
         self.password_input.returnPressed.connect(self.login)
+        
+        # Check current theme and apply specific styles if needed
+        if self.theme_manager and self.theme_manager.get_current_theme() == "dark":
+            self.apply_dark_theme()
     
     def load_saved_credentials(self):
         """Tải thông tin đăng nhập đã lưu"""

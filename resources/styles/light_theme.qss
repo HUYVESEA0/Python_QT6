@@ -1,13 +1,16 @@
+/* Light Theme for the application */
 
 QWidget {
     font-family: 'Segoe UI', Arial, sans-serif;
     font-size: 10pt;
+    background-color: #FFFFFF;
+    color: #333333;
 }
 
 /* Tabs */
 QTabWidget::pane {
     border-top: 1px solid #C2C7CB;
-    background: #F4F4F4;
+    background: #F8F8F8;
 }
 
 QTabWidget::tab-bar {
@@ -15,7 +18,7 @@ QTabWidget::tab-bar {
 }
 
 QTabBar::tab {
-    background: #E1E1E1;
+    background: #E8E8E8;
     border: 1px solid #C4C4C3;
     border-bottom-color: #C2C7CB;
     border-top-left-radius: 4px;
@@ -25,12 +28,12 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected, QTabBar::tab:hover {
-    background: #F8F8F8;
+    background: #FFFFFF;
 }
 
 QTabBar::tab:selected {
     border-color: #9B9B9B;
-    border-bottom-color: #F8F8F8;
+    border-bottom-color: #FFFFFF;
 }
 
 QTabBar::tab:!selected {
@@ -134,12 +137,12 @@ QComboBox::drop-down {
 
 /* Main Window */
 QMainWindow {
-    background-color: #F4F4F4;
+    background-color: #F8F8F8;
 }
 
 /* StatusBar */
 QStatusBar {
-    background-color: #E1E1E1;
+    background-color: #E8E8E8;
     color: #333333;
 }
 
@@ -159,7 +162,7 @@ QMenuBar::item:selected {
 }
 
 QMenu {
-    background-color: #F8F8F8;
+    background-color: #FFFFFF;
     border: 1px solid #BDBDBD;
 }
 
@@ -204,27 +207,6 @@ QTextEdit, QTextBrowser {
     background-color: white;
     border: 1px solid #BDBDBD;
     border-radius: 3px;
-}
-
-/* Report view specific */
-QTextBrowser {
-    font-size: 10pt;
-}
-
-/* Labels in report view */
-QLabel[heading="true"] {
-    font-size: 14pt;
-    font-weight: bold;
-    color: #2A66C8;
-}
-
-/* Special styling for success/error messages */
-QPushButton[type="success"] {
-    background-color: #4CAF50;
-}
-
-QPushButton[type="danger"] {
-    background-color: #F44336;
 }
 
 /* Custom scrollbars */

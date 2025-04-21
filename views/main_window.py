@@ -19,9 +19,9 @@ from views.enrollment_view import EnrollmentView
 from views.report_view import ReportView
 from views.dashboard_view import DashboardView
 from views.activity_log_view import ActivityLogView
-# Removed ThemeManager import
 from utils.notification_manager import NotificationManager, NotificationType
 from utils.config_manager import ConfigManager
+from utils.theme_manager import ThemeManager
 import logging
 
 class MainWindow(QMainWindow):
@@ -62,6 +62,13 @@ class MainWindow(QMainWindow):
             
             from controllers.report_controller import ReportController
             self.report_controller = ReportController(self.db_manager)
+            
+            # Add theme manager initialization after other managers
+            self.theme_manager = ThemeManager(self.config_manager)
+            self.notification_manager.set_theme_manager(self.theme_manager)
+
+            # Apply the theme
+            self.theme_manager.apply_theme()
             
             # Thiết lập giao diện
             self.init_ui()
@@ -610,6 +617,15 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(self.show_about)        
         help_menu.addAction(about_action)
         
+        # Add Theme menu
+        theme_menu = menubar.addMenu("Giao diện")
+        
+        light_theme_action = theme_menu.addAction("Giao diện sáng")
+        light_theme_action.triggered.connect(lambda: self.theme_manager.apply_theme("light"))
+        
+        dark_theme_action = theme_menu.addAction("Giao diện tối")
+        dark_theme_action.triggered.connect(lambda: self.theme_manager.apply_theme("dark"))
+
     def create_toolbar(self):        
         """Tạo toolbar với các chức năng thường dùng"""        
         toolbar = self.addToolBar("Main Toolbar")        
@@ -625,6 +641,18 @@ class MainWindow(QMainWindow):
         
         # Removed theme button
         
+        # Add theme toggle button
+        toolbar.addSeparator()
+        theme_button = QAction(QIcon("resources/icons/theme.png"), "Chuyển đổi giao diện", self)
+        theme_button.setStatusTip("Chuyển đổi giữa giao diện sáng và tối")
+        theme_button.triggered.connect(self.toggle_theme)
+        toolbar.addAction(theme_button)
+    
+    def toggle_theme(self):
+        """Chuyển đổi giữa light và dark theme"""
+        new_theme = self.theme_manager.toggle_theme()
+        self.statusBar().showMessage(f"Đã chuyển sang giao diện {'sáng' if new_theme == 'light' else 'tối'}", 3000)
+
     def save_window_state(self):
         """Lưu trạng thái cửa sổ vào cài đặt"""
         if not self.isMaximized():

@@ -14,6 +14,7 @@ from views.main_window import MainWindow
 from views.login_dialog import LoginDialog
 from controllers.user_controller import UserController
 from utils.initialize_data import initialize_all_data
+from utils.theme_manager import ThemeManager
 
 def exception_hook(exc_type, exc_value, exc_traceback):
     """Xử lý ngoại lệ không bắt được"""
@@ -83,6 +84,9 @@ def main():
         # Dọn dẹp file tạm từ phiên trước (nếu có)
         cleanup_temp_files()
         
+        # Initialize theme manager early
+        theme_manager = ThemeManager(config_manager)
+        
         # Khởi tạo quản lý cơ sở dữ liệu
         try:
             from DB.db_manager import DatabaseManager
@@ -105,8 +109,11 @@ def main():
                                f"Không thể kết nối đến cơ sở dữ liệu: {str(e)}")
             return
         
+        # Apply theme before creating the login dialog
+        theme_manager.apply_theme()
+        
         # Hiển thị dialog đăng nhập
-        login_dialog = LoginDialog(user_controller)
+        login_dialog = LoginDialog(user_controller, theme_manager)
         login_result = login_dialog.exec()
         
         if login_result == QDialog.DialogCode.Accepted:
