@@ -3,9 +3,6 @@
         "APP_ENV": "development"
     },
     "ui": {
-        "theme": "dark",
-        "window_width": 1280,
-        "window_height": 903,
-        "window_maximized": false
+        "theme": "light"
     }
 }
