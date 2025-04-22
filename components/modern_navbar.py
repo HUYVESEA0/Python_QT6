@@ -88,18 +88,18 @@ class ModernNavbar(QFrame):
             }
         """)
         
-        # Layout chính
-        self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(10, 5, 10, 5)
-        self.layout.setSpacing(5)
+        # Layout chính - renamed from layout to main_layout
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(10, 5, 10, 5)
+        self.main_layout.setSpacing(5)
         
         # Tiêu đề ứng dụng
         self.title_label = QLabel("Quản Lý Sinh Viên")
         self.title_label.setObjectName("appTitle")
-        self.layout.addWidget(self.title_label)
+        self.main_layout.addWidget(self.title_label)
         
         # Thêm khoảng cách
-        self.layout.addSpacing(20)
+        self.main_layout.addSpacing(20)
         
         # Dictionary để lưu trữ các button và menu
         self.nav_buttons = {}
@@ -110,7 +110,7 @@ class ModernNavbar(QFrame):
         button = NavButton(text, icon_path, self)
         button.setToolTip(tooltip)
         button.clicked.connect(lambda: self.tabSelected.emit(tab_index))
-        self.layout.addWidget(button)
+        self.main_layout.addWidget(button)
         self.tab_buttons.append(button)
         return button
     
@@ -119,7 +119,7 @@ class ModernNavbar(QFrame):
         button = NavButton(title, icon_path, self)
         menu = QMenu(button)
         button.setMenu(menu)
-        self.layout.addWidget(button)
+        self.main_layout.addWidget(button)
         self.nav_buttons[title] = (button, menu)
         return button, menu
     
@@ -148,8 +148,8 @@ class ModernNavbar(QFrame):
     
     def add_right_aligned_widget(self, widget):
         """Thêm widget căn phải"""
-        self.layout.addStretch(1)  # Đẩy tất cả sang bên phải
-        self.layout.addWidget(widget)
+        self.main_layout.addStretch(1)  # Đẩy tất cả sang bên phải
+        self.main_layout.addWidget(widget)
     
     def set_active_tab(self, index):
         """Đánh dấu tab đang active"""
