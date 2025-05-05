@@ -368,7 +368,7 @@ class ChartWidget(QWidget):
 
 class DashboardView(QWidget):
     """
-    Giao diện trang tổng quan (Dashboard)
+    Giao diện trang tổng quan (Dashboard).
     """
     def __init__(self, student_controller, course_controller, report_controller):
         super().__init__()
@@ -388,7 +388,7 @@ class DashboardView(QWidget):
         self.refresh_timer.start(60000)  # Refresh mỗi phút
     
     def init_ui(self):
-        """Thiết lập giao diện trang tổng quan"""
+        """Thiết lập giao diện trang tổng quan."""
         # Layout chính
         main_layout = QVBoxLayout(self)
         
@@ -450,7 +450,7 @@ class DashboardView(QWidget):
         main_layout.addWidget(scroll_area)
     
     def create_statistics_section(self):
-        """Tạo khu vực hiển thị thống kê với thiết kế card hiện đại"""
+        """Tạo khu vực hiển thị thống kê với thiết kế card hiện đại."""
         layout = QGridLayout()
         layout.setContentsMargins(0, 10, 0, 10)
         layout.setSpacing(15)
@@ -496,7 +496,7 @@ class DashboardView(QWidget):
         return layout
 
     def create_statistic_card(self, title, value, icon_path="", color="#2979ff"):
-        """Tạo card hiển thị thông tin thống kê với thiết kế hiện đại và animation"""
+        """Tạo card hiển thị thông tin thống kê với thiết kế hiện đại và animation."""
         # Tạo frame chính với drop shadow và kiểu dáng mới
         card = QFrame()
         card.setObjectName("statCard")
@@ -545,7 +545,7 @@ class DashboardView(QWidget):
         return card
     
     def create_enrollment_chart_section(self):
-        """Tạo khu vực biểu đồ đăng ký khóa học"""
+        """Tạo khu vực biểu đồ đăng ký khóa học."""
         group_box = QGroupBox("Thống kê đăng ký khóa học")
         layout = QVBoxLayout(group_box)
         
@@ -556,7 +556,7 @@ class DashboardView(QWidget):
         return group_box
     
     def create_student_status_section(self):
-        """Tạo khu vực biểu đồ trạng thái sinh viên"""
+        """Tạo khu vực biểu đồ trạng thái sinh viên."""
         group_box = QGroupBox("Trạng thái sinh viên")
         layout = QVBoxLayout(group_box)
         
@@ -567,7 +567,7 @@ class DashboardView(QWidget):
         return group_box
     
     def create_courses_section(self):
-        """Tạo khu vực biểu đồ khóa học theo tín chỉ"""
+        """Tạo khu vực biểu đồ khóa học theo tín chỉ."""
         group_box = QGroupBox("Khóa học theo tín chỉ")
         layout = QVBoxLayout(group_box)
         
@@ -579,7 +579,7 @@ class DashboardView(QWidget):
     
     # Thêm section cho phân phối điểm số
     def create_grade_distribution_section(self):
-        """Tạo khu vực biểu đồ phân phối điểm số"""
+        """Tạo khu vực biểu đồ phân phối điểm số."""
         group_box = QGroupBox("Phân phối điểm số")
         layout = QVBoxLayout(group_box)
         
@@ -605,7 +605,7 @@ class DashboardView(QWidget):
     
     # Thêm section cho phân phối giới tính
     def create_gender_distribution_section(self):
-        """Tạo khu vực biểu đồ phân phối giới tính"""
+        """Tạo khu vực biểu đồ phân phối giới tính."""
         group_box = QGroupBox("Tỷ lệ giới tính")
         layout = QVBoxLayout(group_box)
         
@@ -630,7 +630,7 @@ class DashboardView(QWidget):
         return group_box
     
     def load_data(self):
-        """Tải dữ liệu thống kê và cập nhật giao diện với trạng thái trống nếu cần"""
+        """Tải dữ liệu thống kê và cập nhật giao diện với trạng thái trống nếu cần."""
         try:
             # Lấy thống kê cơ bản
             stats = self.report_controller.get_student_course_statistics()
@@ -686,7 +686,7 @@ class DashboardView(QWidget):
             QMessageBox.warning(self, "Lỗi", f"Không thể tải dữ liệu dashboard: {str(e)}")
     
     def animate_value(self, label, new_value):
-        """Tạo hiệu ứng animation khi thay đổi giá trị của label"""
+        """Tạo hiệu ứng animation khi thay đổi giá trị của label."""
         try:
             old_value = label.text()
             if old_value == new_value:
@@ -704,7 +704,7 @@ class DashboardView(QWidget):
             label.setText(new_value)
     
     def update_enrollment_chart(self):
-        """Cập nhật biểu đồ đăng ký khóa học"""
+        """Cập nhật biểu đồ đăng ký khóa học."""
         try:
             top_courses = self.report_controller.get_top_courses_by_enrollment(limit=5)
             
@@ -724,7 +724,7 @@ class DashboardView(QWidget):
             logging.error(f"Lỗi khi cập nhật biểu đồ đăng ký: {str(e)}")
     
     def update_student_status_chart(self):
-        """Cập nhật biểu đồ trạng thái sinh viên"""
+        """Cập nhật biểu đồ trạng thái sinh viên."""
         try:
             status_stats = self.report_controller.get_student_status_statistics()
             
@@ -742,7 +742,7 @@ class DashboardView(QWidget):
             logging.error(f"Lỗi khi cập nhật biểu đồ trạng thái sinh viên: {str(e)}")
     
     def update_courses_chart(self):
-        """Cập nhật biểu đồ khóa học theo tín chỉ"""
+        """Cập nhật biểu đồ khóa học theo tín chỉ."""
         try:
             credits_stats = self.report_controller.get_course_credits_statistics()
             
@@ -762,7 +762,7 @@ class DashboardView(QWidget):
             logging.error(f"Lỗi khi cập nhật biểu đồ khóa học: {str(e)}")
     
     def update_grade_distribution_chart(self):
-        """Cập nhật biểu đồ phân phối điểm số"""
+        """Cập nhật biểu đồ phân phối điểm số."""
         try:
             grade_distribution = self.report_controller.get_grade_distribution()
             
@@ -777,7 +777,7 @@ class DashboardView(QWidget):
             self.stacked_grade_widget.setCurrentIndex(1)  # Hiển thị trạng thái trống nếu có lỗi
     
     def update_gender_distribution_chart(self):
-        """Cập nhật biểu đồ tỷ lệ giới tính"""
+        """Cập nhật biểu đồ tỷ lệ giới tính."""
         try:
             gender_stats = self.report_controller.get_gender_statistics()
             

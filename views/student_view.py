@@ -2,135 +2,45 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
                             QLabel, QLineEdit, QComboBox, QPushButton, 
                             QTableWidget, QTableWidgetItem, QHeaderView, 
                             QMessageBox, QGroupBox, QSplitter, QDateEdit,
-                            QFileDialog, QFrame, QMenu)
+                            QFileDialog, QFrame, QMenu, QScrollArea, QSizePolicy)  # Thêm QSizePolicy
 from PyQt6.QtCore import Qt, QDate, QSize
 from PyQt6.QtGui import QIcon, QPixmap, QColor, QAction
 from models.student import Student
 import logging
 import os
-
-class PhotoFrame(QFrame):
-    """Frame hiển thị và chọn ảnh đại diện"""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.photo_path = ""
-        self.default_photo = QPixmap("resources/default_avatar.png")
-        self.current_pixmap = self.default_photo
-        self.setup_ui()
-    
-    def setup_ui(self):
-        self.setMinimumSize(150, 200)
-        self.setMaximumSize(150, 200)
-        self.setFrameShape(QFrame.Shape.Box)
-        self.setFrameShadow(QFrame.Shadow.Sunken)
-        self.setStyleSheet("background-color: white;")
-        
-        layout = QVBoxLayout(self)
-        
-        # Photo label
-        self.photo_label = QLabel()
-        self.photo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.set_default_photo()
-        layout.addWidget(self.photo_label)
-        
-        # Button to change photo
-        self.change_photo_btn = QPushButton("Chọn ảnh")
-        self.change_photo_btn.clicked.connect(self.browse_photo)
-        layout.addWidget(self.change_photo_btn)
-        
-        # Button to remove photo
-        self.remove_photo_btn = QPushButton("Xóa ảnh")
-        self.remove_photo_btn.clicked.connect(self.remove_photo)
-        layout.addWidget(self.remove_photo_btn)
-    
-    def set_default_photo(self):
-        """Đặt ảnh mặc định"""
-        if not self.default_photo.isNull():
-            self.current_pixmap = self.default_photo.scaled(
-                140, 160, 
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-        else:
-            # Tạo pixmap trống nếu không có ảnh mặc định
-            self.current_pixmap = QPixmap(140, 160)
-            self.current_pixmap.fill(Qt.GlobalColor.lightGray)
-            
-        self.photo_label.setPixmap(self.current_pixmap)
-        self.photo_path = ""
-    
-    def set_photo(self, photo_path):
-        """Đặt ảnh từ đường dẫn"""
-        if photo_path and os.path.exists(photo_path):
-            self.photo_path = photo_path
-            pixmap = QPixmap(photo_path)
-            self.current_pixmap = pixmap.scaled(
-                140, 160, 
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            self.photo_label.setPixmap(self.current_pixmap)
-        else:
-            self.set_default_photo()
-    
-    def browse_photo(self):
-        """Mở dialog chọn ảnh từ máy tính"""
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(
-            self,
-            "Chọn ảnh đại diện",
-            "",
-            "Ảnh (*.png *.jpg *.jpeg *.bmp *.gif)"
-        )
-        
-        if file_path:
-            self.set_photo(file_path)
-    
-    def remove_photo(self):
-        """Xóa ảnh đại diện và trở lại ảnh mặc định"""
-        self.set_default_photo()
-    
-    def get_photo_path(self):
-        """Trả về đường dẫn đến ảnh đã chọn"""
-        return self.photo_path
-        
-    def cleanup_temp_files(self):
-        """
-        Dọn dẹp các file ảnh tạm nếu có
-        """
-        # Simple implementation since this class doesn't track temp files
-        # but the method needs to exist for compatibility
-        pass
+from widgets.photo_frame import PhotoFrame
 
 class StudentView(QWidget):
     """
     Giao diện quản lý sinh viên.
     """
     def __init__(self, student_controller, current_user_id=None):
-        """
-        Khởi tạo giao diện quản lý sinh viên.
-        
-        Args:
-            student_controller (StudentController): Controller quản lý sinh viên
-            current_user_id (int): ID của người dùng hiện tại
-        """
         super().__init__()
         self.student_controller = student_controller
-        self.selected_student = None
         self.current_user_id = current_user_id
+        self.selected_student = None
         self.init_ui()
-        
+
     def init_ui(self):
         """Thiết lập giao diện người dùng hiện đại."""
         main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        main_layout.setSpacing(6)
+
         # Tiêu đề và nút chính
         header_layout = QHBoxLayout()
+        header_layout.setSpacing(6)
+
         title = QLabel("Quản lý sinh viên")
         title.setStyleSheet("font-size: 16pt; font-weight: bold; color: #2979ff;")
         header_layout.addWidget(title)
         header_layout.addStretch()
+        
+        # Nút nhập dữ liệu
+        self.import_button = QPushButton("Nhập dữ liệu")
+        self.import_button.setIcon(QIcon("resources/icons/import.png") if os.path.exists("resources/icons/import.png") else QIcon())
+        self.import_button.clicked.connect(self.import_data)
+        header_layout.addWidget(self.import_button)
         
         self.export_button = QPushButton("Xuất dữ liệu")
         self.export_button.setIcon(QIcon("resources/icons/export.png") if os.path.exists("resources/icons/export.png") else QIcon())
@@ -141,16 +51,29 @@ class StudentView(QWidget):
         
         # Chia giao diện thành 2 phần: form bên trái và bảng bên phải
         content_layout = QHBoxLayout()
-        
+        content_layout.setSpacing(8)
+
         # --- PHẦN FORM NHẬP LIỆU ---
+        # Sử dụng QScrollArea để form không bị cắt khi cửa sổ nhỏ
+        form_scroll = QScrollArea()
+        form_scroll.setWidgetResizable(True)
+        form_scroll.setMinimumWidth(390)  # Đảm bảo đủ rộng cho form
+        form_scroll.setMaximumWidth(420)  # Không quá rộng
+
         form_container = QWidget()
-        form_container.setFixedWidth(400)  # Điều chỉnh độ rộng phù hợp
         form_layout = QVBoxLayout(form_container)
-        
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(6)
+
         # Layout chứa form và ảnh
         form_group = QGroupBox("Thông tin sinh viên")
+        form_group.setMinimumHeight(340)  # Đảm bảo không bị co lại quá nhỏ
         form_fields = QFormLayout()
-        
+        form_fields.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        form_fields.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        form_fields.setHorizontalSpacing(8)
+        form_fields.setVerticalSpacing(6)  # Tăng spacing cho dễ nhìn
+
         # ID sinh viên
         self.id_input = QLineEdit()
         self.id_input.setPlaceholderText("Nhập mã sinh viên")
@@ -200,15 +123,16 @@ class StudentView(QWidget):
         
         form_group.setLayout(form_fields)
         form_layout.addWidget(form_group)
-        
+
         # Khung ảnh đại diện
         photo_group = QGroupBox("Ảnh đại diện")
+        photo_group.setMinimumHeight(140)
         photo_layout = QVBoxLayout()
         self.photo_frame = PhotoFrame()
         photo_layout.addWidget(self.photo_frame)
         photo_group.setLayout(photo_layout)
         form_layout.addWidget(photo_group)
-        
+
         # Các nút tác vụ
         button_group = QGroupBox("Thao tác")
         button_layout = QHBoxLayout()
@@ -238,11 +162,20 @@ class StudentView(QWidget):
         
         button_group.setLayout(button_layout)
         form_layout.addWidget(button_group)
-        
+
+        # Đảm bảo form_container không bị co lại quá nhỏ
+        form_container.setMinimumHeight(540)
+        form_container.setSizePolicy(form_container.sizePolicy().horizontalPolicy(), 
+                                    QSizePolicy.Policy.MinimumExpanding)
+
+        form_scroll.setWidget(form_container)
+
         # --- PHẦN BẢNG DỮ LIỆU ---
         table_container = QWidget()
         table_layout = QVBoxLayout(table_container)
-        
+        table_layout.setContentsMargins(0, 0, 0, 0)
+        table_layout.setSpacing(6)
+
         # Tạo ô tìm kiếm
         search_group = QGroupBox("Tìm kiếm")
         search_layout = QHBoxLayout()
@@ -302,15 +235,14 @@ class StudentView(QWidget):
             "Mã SV", "Họ tên", "Ngày sinh", "Giới tính", 
             "Email", "SĐT", "Địa chỉ", "Ngày nhập học", "Trạng thái"
         ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        # Fix for PyQt6: setDefaultAlignment is a static method in PyQt6, use setDefaultAlignment on the header object
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.clicked.connect(self.on_table_clicked)
-        
+        self.table.setStyleSheet("QTableWidget::item { padding: 2px 4px; }")  # Reduce cell padding
+
         # Thêm chức năng sắp xếp khi click vào header
-        self.table.horizontalHeader().setSortIndicatorShown(True)
-        self.table.horizontalHeader().sortIndicatorChanged.connect(self.sort_table)
         
         table_layout.addWidget(self.table)
         
@@ -334,10 +266,11 @@ class StudentView(QWidget):
         table_layout.addLayout(footer_layout)
         
         # Thêm các container vào layout chính
-        content_layout.addWidget(form_container)
+        content_layout.addWidget(form_scroll)  # Thay form_container bằng form_scroll
         content_layout.addWidget(table_container)
-        content_layout.setStretch(1, 1)  # Cho phép table_container mở rộng
-        
+        content_layout.setStretch(0, 0)
+        content_layout.setStretch(1, 1)
+
         main_layout.addLayout(content_layout)
         self.setLayout(main_layout)
         
@@ -357,7 +290,7 @@ class StudentView(QWidget):
         self.populate_table_with_pagination()
     
     def populate_table_with_pagination(self):
-        """Hiển thị dữ liệu trên trang hiện tại"""
+        """Hiển thị dữ liệu trên trang hiện tại."""
         start_idx = (self.current_page - 1) * self.page_size
         
         # Nếu page_size là -1 thì hiển thị tất cả
@@ -372,9 +305,9 @@ class StudentView(QWidget):
     def populate_table(self, students):
         """
         Điền dữ liệu sinh viên vào bảng.
-        
+
         Args:
-            students (list): Danh sách các đối tượng Student
+            students (list): Danh sách các đối tượng Student.
         """
         # Tắt việc cập nhật giao diện để tăng hiệu suất
         self.table.setUpdatesEnabled(False)
@@ -382,7 +315,6 @@ class StudentView(QWidget):
         
         # Lưu trạng thái của thanh cuộn để khôi phục sau
         scrollbar = self.table.verticalScrollBar()
-        scroll_position = scrollbar.value()
         
         # Xóa tất cả các dòng hiện có
         self.table.setRowCount(0)
@@ -426,28 +358,34 @@ class StudentView(QWidget):
         # Khôi phục tính năng cập nhật giao diện và vị trí cuộn
         self.table.setSortingEnabled(True)
         self.table.setUpdatesEnabled(True)
-        scrollbar.setValue(scroll_position)
         
         # Cập nhật nhãn tổng số sinh viên
         self.total_students_label.setText(f"Tổng số: {len(students)} sinh viên")
-    
+        
+        # Align text to the left in all columns
+        for row in range(len(students)):
+            for col in range(9):
+                item = self.table.item(row, col)
+                if item:
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
     def change_page(self, page):
-        """Xử lý khi thay đổi trang"""
+        """Xử lý khi thay đổi trang."""
         self.current_page = page
         self.populate_table_with_pagination()
 
     def change_page_size(self, size):
-        """Xử lý khi thay đổi số lượng mục trên trang"""
+        """Xử lý khi thay đổi số lượng mục trên trang."""
         self.page_size = size
         self.current_page = 1  # Reset về trang đầu tiên
         self.populate_table_with_pagination()
 
     def apply_quick_filters(self, filters):
         """
-        Áp dụng bộ lọc nhanh và hiển thị kết quả
-        
+        Áp dụng bộ lọc nhanh và hiển thị kết quả.
+
         Args:
-            filters (dict): Dictionary chứa các bộ lọc
+            filters (dict): Dictionary chứa các bộ lọc.
         """
         # Lấy tất cả sinh viên
         all_students = self.student_controller.get_all_students()
@@ -475,11 +413,11 @@ class StudentView(QWidget):
 
     def sort_table(self, column_index, order):
         """
-        Sắp xếp bảng dữ liệu theo cột được chọn
-        
+        Sắp xếp bảng dữ liệu theo cột được chọn.
+
         Args:
-            column_index (int): Chỉ số cột
-            order (Qt.SortOrder): Thứ tự sắp xếp
+            column_index (int): Chỉ số cột.
+            order (Qt.SortOrder): Thứ tự sắp xếp.
         """
         # Các trường tương ứng với cột trong bảng
         column_fields = [
@@ -505,16 +443,14 @@ class StudentView(QWidget):
         """Xử lý sự kiện khi người dùng chọn một dòng trong bảng."""
         selected_row = self.table.currentRow()
         if selected_row >= 0:
-            student_id = self.table.item(selected_row, 0).text()
-            self.selected_student = self.student_controller.get_student_by_id(student_id)
             self.display_student(self.selected_student)
     
     def display_student(self, student):
         """
         Hiển thị thông tin sinh viên lên form.
-        
+
         Args:
-            student (Student): Đối tượng sinh viên cần hiển thị
+            student (Student): Đối tượng sinh viên cần hiển thị.
         """
         if not student:
             return
@@ -564,20 +500,32 @@ class StudentView(QWidget):
     def get_form_data(self):
         """
         Lấy dữ liệu từ form và tạo đối tượng Student.
-        
+
         Returns:
-            Student: Đối tượng sinh viên từ form
+            Student: Đối tượng sinh viên từ form.
         """
         student_id = self.id_input.text().strip()
         full_name = self.name_input.text().strip()
-        date_of_birth = self.dob_input.date().toString("yyyy-MM-dd")
-        gender = self.gender_input.currentText()
+        date_of_birth = self.dob_input.date().toString("yyyy-MM-dd") if hasattr(self, 'dob_input') else ""
+        gender = self.gender_input.currentText() if hasattr(self, 'gender_input') else ""
         email = self.email_input.text().strip()
         phone = self.phone_input.text().strip()
         address = self.address_input.text().strip()
-        enrolled_date = self.enroll_date_input.date().toString("yyyy-MM-dd")
-        status = self.status_input.currentText()
-        
+        enrolled_date = self.enroll_date_input.date().toString("yyyy-MM-dd") if hasattr(self, 'enroll_date_input') else ""
+        status = self.status_input.currentText() if hasattr(self, 'status_input') else ""
+        photo_path = self.photo_frame.get_photo_path() if hasattr(self, 'photo_frame') else ""
+
+        # Validate required fields
+        if not student_id:
+            QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập mã sinh viên!")
+            return None
+        if not full_name:
+            QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập họ tên sinh viên!")
+            return None
+        if not email:
+            QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập email!")
+            return None
+
         return Student(
             student_id=student_id,
             full_name=full_name,
@@ -587,9 +535,10 @@ class StudentView(QWidget):
             phone=phone,
             address=address,
             enrolled_date=enrolled_date,
-            status=status
+            status=status,
+            photo_path=photo_path
         )
-    
+
     def add_student(self):
         """Thêm sinh viên mới vào hệ thống."""
         # Kiểm tra dữ liệu hợp lệ
@@ -597,6 +546,9 @@ class StudentView(QWidget):
             return
         
         student = self.get_form_data()
+        if not student:
+            return
+        
         photo_path = self.photo_frame.get_photo_path()
         
         success = self.student_controller.add_student(
@@ -630,6 +582,9 @@ class StudentView(QWidget):
             return
         
         student = self.get_form_data()
+        if not student:
+            return
+        
         photo_path = self.photo_frame.get_photo_path()
         
         # Nếu không chọn ảnh mới, giữ nguyên ảnh cũ
@@ -725,7 +680,7 @@ class StudentView(QWidget):
             )
     
     def show_advanced_search(self):
-        """Hiển thị giao diện tìm kiếm nâng cao"""
+        """Hiển thị giao diện tìm kiếm nâng cao."""
         from views.advanced_search_dialog import AdvancedStudentSearchDialog
         dialog = AdvancedStudentSearchDialog(self)
         if dialog.exec():
@@ -739,60 +694,94 @@ class StudentView(QWidget):
                 )
     
     def export_data(self):
-        """Xuất dữ liệu sinh viên ra các định dạng"""
+        """Xuất dữ liệu sinh viên ra các định dạng."""
         from utils.export_manager import ExportManager
-        
+
         # Lấy dữ liệu từ bảng hiện tại
         rows = self.table.rowCount()
         cols = self.table.columnCount()
         if rows == 0:
             QMessageBox.warning(self, "Cảnh báo", "Không có dữ liệu để xuất!")
             return
-        
-        # Chuẩn bị dữ liệu
+
+        # Lấy header là text
         headers = []
         for col in range(cols):
-            headers.append(self.table.horizontalHeaderItem(col).text())
-        
+            header_item = self.table.horizontalHeaderItem(col)
+            headers.append(header_item.text() if header_item else f"Cột {col+1}")
+
+        # Lấy dữ liệu, loại bỏ dòng trống
         data = []
         for row in range(rows):
             row_data = []
+            is_empty = True
             for col in range(cols):
                 item = self.table.item(row, col)
-                row_data.append(item.text() if item else "")
-            data.append(row_data)
-        
+                value = item.text().strip() if item else ""
+                if value:
+                    is_empty = False
+                row_data.append(value)
+            if not is_empty:
+                data.append(row_data)
+
         # Hiển thị menu xuất dữ liệu
         export_menu = QMenu(self)
         export_excel_action = export_menu.addAction("Xuất ra Excel")
         export_pdf_action = export_menu.addAction("Xuất ra PDF")
-        
+
         action = export_menu.exec(self.export_button.mapToGlobal(
             self.export_button.rect().bottomRight()
         ))
-        
+
         if action == export_excel_action:
             ExportManager.export_to_excel(
-                data, 
-                headers, 
-                parent=self, 
+                data,
+                headers,
+                parent=self,
                 default_filename="danh_sach_sinh_vien.xlsx"
             )
         elif action == export_pdf_action:
             ExportManager.export_to_pdf(
-                data, 
-                headers, 
-                title="Danh sách sinh viên", 
-                parent=self, 
+                data,
+                headers,
+                title="Danh sách sinh viên",
+                parent=self,
                 default_filename="danh_sach_sinh_vien.pdf"
             )
+    
+    def import_data(self):
+        """Nhập dữ liệu sinh viên từ file Excel/CSV."""
+        from utils.import_manager import ImportManager  # Đảm bảo đã có ImportManager
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Chọn file dữ liệu để nhập",
+            "",
+            "Excel Files (*.xlsx *.xls);;CSV Files (*.csv);;All Files (*)"
+        )
+        if not file_path:
+            return
+        try:
+            imported_students = ImportManager.import_students(file_path)
+            if not imported_students:
+                QMessageBox.warning(self, "Lỗi", "Không có dữ liệu hợp lệ để nhập!")
+                return
+            count = 0
+            for student in imported_students:
+                # Thêm từng sinh viên, bỏ qua nếu mã đã tồn tại
+                success = self.student_controller.add_student(student)
+                if success:
+                    count += 1
+            QMessageBox.information(self, "Nhập dữ liệu", f"Đã nhập thành công {count} sinh viên.")
+            self.load_students()
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Lỗi khi nhập dữ liệu: {str(e)}")
     
     def validate_form_data(self):
         """
         Kiểm tra dữ liệu nhập vào form.
-        
+
         Returns:
-            bool: True nếu dữ liệu hợp lệ, False nếu không
+            bool: True nếu dữ liệu hợp lệ, False nếu không.
         """
         # Kiểm tra mã sinh viên
         student_id = self.id_input.text().strip()

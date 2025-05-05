@@ -9,7 +9,7 @@ import logging
 
 class LoginDialog(QDialog):
     """
-    Dialog hiển thị giao diện đăng nhập
+    Dialog hiển thị giao diện đăng nhập.
     """
     # Add loginSuccessful signal
     loginSuccessful = pyqtSignal(object)
@@ -27,7 +27,7 @@ class LoginDialog(QDialog):
             self.theme_manager.theme_changed.connect(self.on_theme_changed)
     
     def on_theme_changed(self, theme_name):
-        """Handle theme changes"""
+        """Handle theme changes."""
         # Update specific UI elements for the login dialog that need theme-specific styling
         if theme_name == "dark":
             self.apply_dark_theme()
@@ -35,7 +35,7 @@ class LoginDialog(QDialog):
             self.apply_light_theme()
     
     def apply_dark_theme(self):
-        """Apply dark theme specific styles"""
+        """Apply dark theme specific styles."""
         # These are additional styles specific to the login dialog
         # The main theme stylesheet is already applied to the application
         self.setStyleSheet("""
@@ -54,12 +54,12 @@ class LoginDialog(QDialog):
         """)
     
     def apply_light_theme(self):
-        """Apply light theme specific styles"""
+        """Apply light theme specific styles."""
         # Reset to default which inherits from QApplication stylesheet
         self.setStyleSheet("")
     
     def init_ui(self):
-        """Thiết lập giao diện đăng nhập"""
+        """Thiết lập giao diện đăng nhập."""
         self.setWindowTitle("Đăng nhập")
         self.setWindowIcon(QIcon("resources/icons/login.png") if os.path.exists("resources/icons/login.png") else QIcon())
         self.setMinimumSize(400, 350)
@@ -158,7 +158,7 @@ class LoginDialog(QDialog):
             self.apply_dark_theme()
     
     def load_saved_credentials(self):
-        """Tải thông tin đăng nhập đã lưu"""
+        """Tải thông tin đăng nhập đã lưu."""
         if self.settings.contains("login/remember") and self.settings.value("login/remember") == "true":
             username = self.settings.value("login/username", "")
             self.username_input.setText(username)
@@ -171,7 +171,7 @@ class LoginDialog(QDialog):
             self.username_input.setFocus()
     
     def save_credentials(self, username):
-        """Lưu thông tin đăng nhập"""
+        """Lưu thông tin đăng nhập."""
         if self.remember_checkbox.isChecked():
             self.settings.setValue("login/remember", "true")
             self.settings.setValue("login/username", username)
@@ -180,7 +180,7 @@ class LoginDialog(QDialog):
             self.settings.remove("login/username")
     
     def login(self):
-        """Xử lý đăng nhập"""
+        """Xử lý đăng nhập."""
         username = self.username_input.text().strip()
         password = self.password_input.text()
         
@@ -214,12 +214,12 @@ class LoginDialog(QDialog):
             self.login_button.setText("Đăng nhập")
     
     def forgot_password(self):
-        """Xử lý khi người dùng quên mật khẩu"""
+        """Xử lý khi người dùng quên mật khẩu."""
         QMessageBox.information(self, "Quên mật khẩu", 
                              "Vui lòng liên hệ với quản trị viên để lấy lại mật khẩu.\n"
                              "Email: admin@xyz.edu.vn\n"
                              "Hotline: 1900 xxxx")
     
     def get_user(self):
-        """Trả về người dùng đã đăng nhập"""
+        """Trả về người dùng đã đăng nhập."""
         return self.user

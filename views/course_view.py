@@ -185,9 +185,9 @@ class CourseView(QWidget):
     def populate_table(self, courses):
         """
         Điền dữ liệu khóa học vào bảng.
-        
+
         Args:
-            courses (list): Danh sách các đối tượng Course
+            courses (list): Danh sách các đối tượng Course.
         """
         self.table.setRowCount(0)
         
@@ -201,7 +201,7 @@ class CourseView(QWidget):
             self.table.setItem(row, 5, QTableWidgetItem(str(course.max_students)))
     
     def populate_table_with_pagination(self):
-        """Hiển thị dữ liệu trên trang hiện tại"""
+        """Hiển thị dữ liệu trên trang hiện tại."""
         start_idx = (self.current_page - 1) * self.page_size
         
         # Nếu page_size là -1 thì hiển thị tất cả
@@ -214,22 +214,22 @@ class CourseView(QWidget):
         self.total_courses_label.setText(f"Tổng số: {len(self.filtered_courses)} khóa học")
     
     def change_page(self, page):
-        """Xử lý khi thay đổi trang"""
+        """Xử lý khi thay đổi trang."""
         self.current_page = page
         self.populate_table_with_pagination()
     
     def change_page_size(self, size):
-        """Xử lý khi thay đổi số lượng mục trên trang"""
+        """Xử lý khi thay đổi số lượng mục trên trang."""
         self.page_size = size
         self.current_page = 1  # Reset về trang đầu tiên
         self.populate_table_with_pagination()
     
     def apply_quick_filters(self, filters):
         """
-        Áp dụng bộ lọc nhanh và hiển thị kết quả
-        
+        Áp dụng bộ lọc nhanh và hiển thị kết quả.
+
         Args:
-            filters (dict): Dictionary chứa các bộ lọc
+            filters (dict): Dictionary chứa các bộ lọc.
         """
         # Lấy tất cả khóa học
         all_courses = self.course_controller.get_all_courses()
@@ -255,11 +255,11 @@ class CourseView(QWidget):
     
     def sort_table(self, column_index, order):
         """
-        Sắp xếp bảng dữ liệu theo cột được chọn
-        
+        Sắp xếp bảng dữ liệu theo cột được chọn.
+
         Args:
-            column_index (int): Chỉ số cột
-            order (Qt.SortOrder): Thứ tự sắp xếp
+            column_index (int): Chỉ số cột.
+            order (Qt.SortOrder): Thứ tự sắp xếp.
         """
         # Các trường tương ứng với cột trong bảng
         column_fields = [
@@ -292,9 +292,9 @@ class CourseView(QWidget):
     def display_course(self, course):
         """
         Hiển thị thông tin khóa học lên form.
-        
+
         Args:
-            course (Course): Đối tượng khóa học cần hiển thị
+            course (Course): Đối tượng khóa học cần hiển thị.
         """
         if not course:
             return
@@ -309,9 +309,9 @@ class CourseView(QWidget):
     def get_form_data(self):
         """
         Lấy dữ liệu từ form và tạo đối tượng Course.
-        
+
         Returns:
-            Course: Đối tượng khóa học từ form
+            Course: Đối tượng khóa học từ form.
         """
         course_id = self.id_input.text().strip()
         course_name = self.name_input.text().strip()
@@ -432,9 +432,9 @@ class CourseView(QWidget):
     def validate_form_data(self):
         """
         Kiểm tra dữ liệu nhập vào form.
-        
+
         Returns:
-            bool: True nếu dữ liệu hợp lệ, False nếu không
+            bool: True nếu dữ liệu hợp lệ, False nếu không.
         """
         # Kiểm tra mã khóa học
         course_id = self.id_input.text().strip()

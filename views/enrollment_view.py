@@ -169,9 +169,9 @@ class EnrollmentView(QWidget):
     def populate_table(self, enrollments):
         """
         Điền dữ liệu đăng ký vào bảng.
-        
+
         Args:
-            enrollments (list): Danh sách các bản ghi đăng ký
+            enrollments (list): Danh sách các bản ghi đăng ký.
         """
         self.enrollment_table.setRowCount(0)
         
@@ -210,9 +210,9 @@ class EnrollmentView(QWidget):
     def display_enrollment(self, enrollment):
         """
         Hiển thị thông tin đăng ký lên form.
-        
+
         Args:
-            enrollment (dict): Thông tin đăng ký
+            enrollment (dict): Thông tin đăng ký.
         """
         if not enrollment:
             return
@@ -370,9 +370,9 @@ class EnrollmentView(QWidget):
     def populate_enrollment_table(self, enrollments):
         """
         Điền dữ liệu đăng ký vào bảng.
-        
+
         Args:
-            enrollments (list): Danh sách các đăng ký
+            enrollments (list): Danh sách các đăng ký.
         """
         # Tắt việc cập nhật giao diện để tăng hiệu suất
         self.enrollment_table.setUpdatesEnabled(False)
@@ -439,6 +439,6 @@ class EnrollmentView(QWidget):
         self.update_enrollment_count()
     
     def update_enrollment_count(self):
-        """Cập nhật tổng số đăng ký hiển thị"""
+        """Cập nhật tổng số đăng ký hiển thị."""
         count = self.enrollment_table.rowCount()
         self.enrollment_count_label.setText(f"Tổng số đăng ký: {count}")

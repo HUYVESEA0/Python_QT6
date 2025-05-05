@@ -34,7 +34,11 @@ class Student:
         self.address = address
         self.enrolled_date = enrolled_date if enrolled_date else datetime.now().strftime("%Y-%m-%d")
         self.status = status
-        self.photo_path = photo_path
+        # Nếu là ảnh mặc định thì để rỗng
+        if photo_path and photo_path.endswith("default_avatar.png"):
+            self.photo_path = ""
+        else:
+            self.photo_path = photo_path
 
     @classmethod
     def from_dict(cls, data):
@@ -47,6 +51,9 @@ class Student:
         Returns:
             Student: Đối tượng sinh viên mới
         """
+        photo_path = data.get('photo_path', '')
+        if photo_path and photo_path.endswith("default_avatar.png"):
+            photo_path = ""
         return cls(
             student_id=data.get('student_id', ''),
             full_name=data.get('full_name', ''),
@@ -57,7 +64,7 @@ class Student:
             address=data.get('address', ''),
             enrolled_date=data.get('enrolled_date', ''),
             status=data.get('status', 'Active'),
-            photo_path=data.get('photo_path', '')
+            photo_path=photo_path
         )
     
     def to_dict(self):
@@ -67,6 +74,9 @@ class Student:
         Returns:
             dict: Dictionary chứa thông tin sinh viên
         """
+        photo_path = self.photo_path
+        if photo_path and photo_path.endswith("default_avatar.png"):
+            photo_path = ""
         return {
             'student_id': self.student_id,
             'full_name': self.full_name,
@@ -77,7 +87,7 @@ class Student:
             'address': self.address,
             'enrolled_date': self.enrolled_date,
             'status': self.status,
-            'photo_path': self.photo_path
+            'photo_path': photo_path
         }
     
     def get_photo(self, default_size=(100, 100)):

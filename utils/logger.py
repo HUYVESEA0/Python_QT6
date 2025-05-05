@@ -76,4 +76,4 @@ class Logger:
         Args:
             exception: Exception cần ghi log
         """
-        logging.exception(f"Exception phát sinh: {exception}")
+        logging.exception("Exception phát sinh: %s", exception)

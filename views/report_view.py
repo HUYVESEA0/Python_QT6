@@ -68,9 +68,9 @@ class ReportView(QWidget):
     def setup_overview_tab(self, tab):
         """
         Thiết lập tab thống kê tổng quan.
-        
+
         Args:
-            tab (QWidget): Widget tab cần thiết lập
+            tab (QWidget): Widget tab cần thiết lập.
         """
         layout = QVBoxLayout()
         
@@ -115,9 +115,9 @@ class ReportView(QWidget):
     def setup_top_courses_tab(self, tab):
         """
         Thiết lập tab các khóa học được đăng ký nhiều nhất.
-        
+
         Args:
-            tab (QWidget): Widget tab cần thiết lập
+            tab (QWidget): Widget tab cần thiết lập.
         """
         layout = QVBoxLayout()
         
@@ -159,9 +159,9 @@ class ReportView(QWidget):
     def setup_grade_distribution_tab(self, tab):
         """
         Thiết lập tab phân phối điểm.
-        
+
         Args:
-            tab (QWidget): Widget tab cần thiết lập
+            tab (QWidget): Widget tab cần thiết lập.
         """
         layout = QVBoxLayout()
         
@@ -193,9 +193,9 @@ class ReportView(QWidget):
     def setup_student_results_tab(self, tab):
         """
         Thiết lập tab kết quả học tập của sinh viên.
-        
+
         Args:
-            tab (QWidget): Widget tab cần thiết lập
+            tab (QWidget): Widget tab cần thiết lập.
         """
         layout = QVBoxLayout()
         
@@ -389,7 +389,7 @@ class ReportView(QWidget):
             QMessageBox.warning(self, "Lỗi", f"Không thể tải kết quả học tập: {e}")
 
     def load_data(self):
-        """Tải dữ liệu thống kê"""
+        """Tải dữ liệu thống kê."""
         # ...existing code...
         
         # Thêm vào cuối phương thức

@@ -1,4 +1,4 @@
-#!F:\MY\Flask_app\GUI_app\Python_QT6\venv\Scripts\python.exe
+#!f:\MY\Software\Python_QT6\venv\Scripts\python.exe
 
 ##############################################################################
 #

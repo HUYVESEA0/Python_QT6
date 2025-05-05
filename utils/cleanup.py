@@ -45,12 +45,11 @@ def cleanup_project(project_root=None):
     for pattern in patterns_to_remove:
         for path in project_root.glob(pattern):
             # Kiểm tra xem path có nằm trong thư mục cần giữ lại không
-            should_keep = any(str(path).startswith(str(project_root / dir_keep)) 
-                            for dir_keep in dirs_to_keep)
-            
+            should_keep = any((project_root / dir_keep) in path.parents
+                              for dir_keep in dirs_to_keep)
+
             if should_keep:
                 continue
-                
             try:
                 if path.is_file():
                     path.unlink()

@@ -11,7 +11,7 @@ from utils.export_manager import ExportManager
 
 class ActivityLogView(QWidget):
     """
-    Giao diện hiển thị nhật ký hoạt động của hệ thống
+    Giao diện hiển thị nhật ký hoạt động của hệ thống.
     """
     def __init__(self, db_manager):
         super().__init__()
@@ -19,7 +19,7 @@ class ActivityLogView(QWidget):
         self.init_ui()
     
     def init_ui(self):
-        """Thiết lập giao diện người dùng"""
+        """Thiết lập giao diện người dùng."""
         main_layout = QVBoxLayout()
         
         # Header
@@ -142,7 +142,7 @@ class ActivityLogView(QWidget):
         self.load_activities()
     
     def load_activities(self):
-        """Tải danh sách hoạt động dựa trên các bộ lọc"""
+        """Tải danh sách hoạt động dựa trên các bộ lọc."""
         try:
             # Hiển thị trạng thái đang tải
             old_cursor = self.cursor()
@@ -189,7 +189,7 @@ class ActivityLogView(QWidget):
             self.setCursor(old_cursor)
     
     def populate_table(self, activities):
-        """Điền dữ liệu hoạt động vào bảng"""
+        """Điền dữ liệu hoạt động vào bảng."""
         try:
             # Lưu vị trí cuộn hiện tại
             scrollbar = self.table.verticalScrollBar()
@@ -268,7 +268,7 @@ class ActivityLogView(QWidget):
             QMessageBox.warning(self, "Lỗi", f"Không thể hiển thị dữ liệu hoạt động: {str(e)}")
     
     def export_data(self):
-        """Xuất dữ liệu ra các định dạng"""
+        """Xuất dữ liệu ra các định dạng."""
         if self.table.rowCount() == 0:
             QMessageBox.warning(self, "Cảnh báo", "Không có dữ liệu để xuất!")
             return
@@ -315,21 +315,21 @@ class ActivityLogView(QWidget):
             )
     
     def filter_today(self):
-        """Lọc hoạt động của ngày hôm nay"""
+        """Lọc hoạt động của ngày hôm nay."""
         today = QDate.currentDate()
         self.date_from.setDate(today)
         self.date_to.setDate(today)
         self.load_activities()
     
     def filter_yesterday(self):
-        """Lọc hoạt động của ngày hôm qua"""
+        """Lọc hoạt động của ngày hôm qua."""
         yesterday = QDate.currentDate().addDays(-1)
         self.date_from.setDate(yesterday)
         self.date_to.setDate(yesterday)
         self.load_activities()
     
     def filter_this_week(self):
-        """Lọc hoạt động của tuần này"""
+        """Lọc hoạt động của tuần này."""
         today = QDate.currentDate()
         # Tính ngày đầu tuần (Thứ Hai)
         days_to_monday = today.dayOfWeek() - 1  # Trong Qt, Thứ Hai là 1
@@ -340,7 +340,7 @@ class ActivityLogView(QWidget):
         self.load_activities()
     
     def filter_this_month(self):
-        """Lọc hoạt động của tháng này"""
+        """Lọc hoạt động của tháng này."""
         today = QDate.currentDate()
         start_of_month = QDate(today.year(), today.month(), 1)
         

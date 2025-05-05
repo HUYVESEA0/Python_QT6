@@ -1,10 +1,9 @@
 import sys
 import os
 from PyQt6.QtWidgets import (QMainWindow, QTabWidget, QStatusBar,
-                             QMessageBox, QLabel, QToolBar, QWidget,
-                             QMenu)
-from PyQt6.QtGui import QIcon, QPixmap, QAction  # QAction moved here from QtWidgets
-from PyQt6.QtCore import Qt, QSize
+                             QMessageBox, QLabel, QToolBar)
+from PyQt6.QtGui import QIcon, QAction  # QAction moved here from QtWidgets
+from PyQt6.QtCore import QSize
 from DB.db_manager import DatabaseManager
 from controllers.student_controller import StudentController
 from controllers.course_controller import CourseController
@@ -27,7 +26,7 @@ class MainWindow(QMainWindow):
         self.current_user = current_user
         
         # Khởi tạo cơ sở dữ liệu
-        self.db_manager = DatabaseManager()
+        self.db_manager = DatabaseManager(None)
         
         # Khởi tạo controllers
         self.student_controller = StudentController(self.db_manager)
@@ -90,8 +89,7 @@ class MainWindow(QMainWindow):
         if menu_bar is None:
             logging.warning("Menu bar is None, creating a new one")
             # Create a menu bar explicitly if needed
-            from PyQt6.QtWidgets import QMenuBar
-            menu_bar = QMenuBar(self)
+            menu_bar = self.menuBar()  # Use QMainWindow's built-in method
             self.setMenuBar(menu_bar)
         
         # Menu Hệ thống

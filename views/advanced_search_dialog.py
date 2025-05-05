@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, QDate
 
 class AdvancedStudentSearchDialog(QDialog):
     """
-    Dialog tìm kiếm sinh viên nâng cao
+    Dialog tìm kiếm sinh viên nâng cao.
     """
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -15,7 +15,7 @@ class AdvancedStudentSearchDialog(QDialog):
         self.init_ui()
     
     def init_ui(self):
-        """Thiết lập giao diện dialog"""
+        """Thiết lập giao diện dialog."""
         main_layout = QVBoxLayout()
         
         # Nhóm tìm kiếm thông tin cơ bản
@@ -144,17 +144,17 @@ class AdvancedStudentSearchDialog(QDialog):
         self.setLayout(main_layout)
     
     def toggle_dob_fields(self, enabled):
-        """Bật/tắt các trường ngày sinh"""
+        """Bật/tắt các trường ngày sinh."""
         self.from_date.setEnabled(enabled)
         self.to_date.setEnabled(enabled)
     
     def toggle_enroll_fields(self, enabled):
-        """Bật/tắt các trường ngày nhập học"""
+        """Bật/tắt các trường ngày nhập học."""
         self.enroll_from.setEnabled(enabled)
         self.enroll_to.setEnabled(enabled)
     
     def clear_filters(self):
-        """Xóa tất cả bộ lọc"""
+        """Xóa tất cả bộ lọc."""
         self.id_input.clear()
         self.name_input.clear()
         self.email_input.clear()
@@ -168,7 +168,7 @@ class AdvancedStudentSearchDialog(QDialog):
         self.status_combo.setCurrentIndex(0)
     
     def validate_dates(self):
-        """Kiểm tra ngày tháng hợp lệ"""
+        """Kiểm tra ngày tháng hợp lệ."""
         if self.use_dob.isChecked() and self.from_date.date() > self.to_date.date():
             QMessageBox.warning(self, "Lỗi", "Ngày sinh 'Từ ngày' phải nhỏ hơn hoặc bằng 'Đến ngày'!")
             return False
@@ -180,16 +180,16 @@ class AdvancedStudentSearchDialog(QDialog):
         return True
     
     def accept(self):
-        """Xử lý khi nhấn nút OK"""
+        """Xử lý khi nhấn nút OK."""
         if self.validate_dates():
             super().accept()
     
     def get_filters(self):
         """
-        Lấy các bộ lọc từ dialog
-        
+        Lấy các bộ lọc từ dialog.
+
         Returns:
-            dict: Các bộ lọc tìm kiếm
+            dict: Các bộ lọc tìm kiếm.
         """
         filters = {}
         

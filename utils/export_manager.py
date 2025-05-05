@@ -29,6 +29,16 @@ class ExportManager:
             bool: True nếu xuất thành công, False nếu thất bại
         """
         try:
+            # Loại bỏ các dòng trống hoàn toàn
+            filtered_data = [row for row in data if any(str(cell).strip() for cell in row)]
+            if not filtered_data:
+                QMessageBox.warning(
+                    parent,
+                    "Lỗi",
+                    "Không có dữ liệu hợp lệ để xuất ra Excel!"
+                )
+                return False
+
             if not default_filename:
                 default_filename = f"export_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
                 
@@ -46,7 +56,7 @@ class ExportManager:
                 filename += '.xlsx'
             
             # Tạo DataFrame từ dữ liệu
-            df = pd.DataFrame(data, columns=column_headers)
+            df = pd.DataFrame(filtered_data, columns=column_headers)
             
             # Xuất ra file Excel
             df.to_excel(filename, index=False)
@@ -397,3 +407,60 @@ class ExportManager:
                 f"Không thể xuất dữ liệu ra file HTML: {str(e)}"
             )
             return False
+    
+    @staticmethod
+    def export_empty_template(column_headers, parent=None, default_filename=None):
+        """
+        Xuất file mẫu rỗng với các trường trùng với cơ sở dữ liệu (Excel/CSV).
+        
+        Args:
+            column_headers (list): Danh sách tên trường (cột)
+            parent (QWidget, optional): Widget cha để hiển thị dialog
+            default_filename (str, optional): Tên file mặc định
+            
+        Returns:
+            bool: True nếu xuất thành công, False nếu thất bại
+        """
+        try:
+            if not default_filename:
+                default_filename = f"import_template_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+                
+            filename, _ = QFileDialog.getSaveFileName(
+                parent,
+                "Xuất file mẫu nhập dữ liệu",
+                os.path.join(os.path.expanduser("~"), "Documents", default_filename),
+                "Excel Files (*.xlsx);;CSV Files (*.csv);;All Files (*)"
+            )
+            
+            if not filename:
+                return False
+            
+            if filename.endswith('.csv'):
+                import csv
+                with open(filename, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(column_headers)
+            else:
+                if not filename.endswith('.xlsx'):
+                    filename += '.xlsx'
+                df = pd.DataFrame(columns=column_headers)
+                df.to_excel(filename, index=False)
+            
+            QMessageBox.information(
+                parent,
+                "Thành công",
+                f"Đã xuất file mẫu nhập dữ liệu:\n{filename}"
+            )
+            
+            return True
+        
+        except Exception as e:
+            logging.error(f"Lỗi khi xuất file mẫu nhập dữ liệu: {str(e)}")
+            QMessageBox.warning(
+                parent,
+                "Lỗi",
+                f"Không thể xuất file mẫu nhập dữ liệu: {str(e)}"
+            )
+            return False
+
+

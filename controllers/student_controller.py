@@ -103,11 +103,15 @@ class StudentController:
         # Xử lý ảnh đại diện nếu có
         saved_photo_path = ""
         if photo_file_path:
-            try:
-                saved_photo_path = self.db_manager.save_student_photo(student.student_id, photo_file_path)
-            except Exception as e:
-                logging.error(f"Lỗi khi lưu ảnh sinh viên: {e}")
-        
+            # Nếu là ảnh mặc định thì không lưu
+            if photo_file_path.endswith("default_avatar.png"):
+                saved_photo_path = ""
+            else:
+                try:
+                    saved_photo_path = self.db_manager.save_student_photo(student.student_id, photo_file_path)
+                except Exception as e:
+                    logging.error("Lỗi khi lưu ảnh sinh viên: %s", e)
+
         # Tạo truy vấn
         query = """
         INSERT INTO students (
@@ -128,7 +132,7 @@ class StudentController:
             
             if success:
                 logging.info(f"Đã thêm sinh viên: {student.student_id} - {student.full_name}")
-                
+
                 # Ghi nhật ký hoạt động
                 if current_user_id:
                     self.db_manager.log_activity(
@@ -143,7 +147,7 @@ class StudentController:
                 
             return success
         except Exception as e:
-            logging.error(f"Lỗi khi thêm sinh viên: {e}")
+            logging.error("Lỗi khi thêm sinh viên: %s", e)
             return False
     
     def update_student(self, student, photo_file_path=None, current_user_id=None):
@@ -166,15 +170,17 @@ class StudentController:
         
         # Xử lý ảnh đại diện nếu có thay đổi
         if photo_file_path:
-            # Xóa ảnh cũ nếu có
-            if existing_student.photo_path:
-                self.db_manager.delete_student_photo(existing_student.photo_path)
-            
-            # Lưu ảnh mới
-            photo_path = self.db_manager.save_student_photo(student.student_id, photo_file_path)
-            student.photo_path = photo_path
+            # Nếu là ảnh mặc định thì xóa ảnh cũ và không lưu mới
+            if photo_file_path.endswith("default_avatar.png"):
+                if existing_student.photo_path:
+                    self.db_manager.delete_student_photo(existing_student.photo_path)
+                student.photo_path = ""
+            else:
+                if existing_student.photo_path:
+                    self.db_manager.delete_student_photo(existing_student.photo_path)
+                photo_path = self.db_manager.save_student_photo(student.student_id, photo_file_path)
+                student.photo_path = photo_path
         else:
-            # Giữ nguyên ảnh cũ
             student.photo_path = existing_student.photo_path
         
         query = """
@@ -208,7 +214,7 @@ class StudentController:
         success = rows_affected > 0
         
         if success:
-            logging.info(f"Đã cập nhật sinh viên: {student}")
+            logging.info("Đã cập nhật sinh viên: %s", student)
             
             # Ghi nhật ký hoạt động
             if current_user_id:
@@ -220,7 +226,7 @@ class StudentController:
                     entity_id=student.student_id
                 )
         else:
-            logging.warning(f"Không thể cập nhật sinh viên: {student}")
+            logging.warning("Không thể cập nhật sinh viên: %s", student)
             
         return success
     

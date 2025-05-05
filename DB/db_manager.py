@@ -6,43 +6,44 @@ import hashlib
 import shutil
 from datetime import datetime
 from utils.config_manager import ConfigManager
-from .create_tables import create_tables
 
 class DatabaseManager:
     """
     Lớp quản lý kết nối và thao tác với cơ sở dữ liệu SQLite.
     """
     
-    def __init__(self, db_path=None):
+    def __init__(self, db_path: str | None):
         """
         Khởi tạo kết nối cơ sở dữ liệu
         
         Args:
             db_path (str, optional): Đường dẫn đến file cơ sở dữ liệu
         """
+        # Ensure self.cursor is always defined
+        self.connection = None
+        self.cursor = None
         try:
             config_manager = ConfigManager()
             
             if db_path is None:
-                # Use the get_db_path method instead of get with 'DB_PATH' as a section
                 db_path = config_manager.get_db_path()
             
             # Ensure the directory exists
             os.makedirs(os.path.dirname(db_path), exist_ok=True)
             
             self.db_path = db_path
-            self.connection = None
-            self.cursor = None
-            
-            # Connect to the database
+            # self.connection and self.cursor are already set to None above
             self.connect()
+
+            # Thêm thuộc tính photos_dir
+            self.photos_dir = os.path.join(os.path.dirname(db_path), "photos")
+            os.makedirs(self.photos_dir, exist_ok=True)
             
-            # Ensure all required tables exist
-            self.ensure_tables_exist()
-            
-            logging.info(f"Đã khởi tạo kết nối đến cơ sở dữ liệu: {self.db_path}")
-        except Exception as e:
-            logging.error(f"Error initializing database connection: {str(e)}")
+            # Initialize temp_files list to track temporary files for cleanup
+            self.temp_files = []
+
+        except (sqlite3.Error, OSError, ValueError) as e:
+            logging.error("Error initializing database connection: %s", str(e))
             raise
 
     # Add a property to alias connection as conn for compatibility
@@ -51,35 +52,60 @@ class DatabaseManager:
         """Alias for connection attribute to maintain compatibility with other code."""
         return self.connection
 
+    def _create_connection(self, db_path: str | None):
+        """
+        Create a database connection to the SQLite database specified by db_path.
+        
+        Args:
+            db_path (str): Path to the SQLite database file
+            
+        Returns:
+            Connection object or None
+        """
+        try:
+            if db_path is None:
+                raise ValueError("Database path cannot be None.")
+            connection = sqlite3.connect(db_path)
+            connection.row_factory = sqlite3.Row
+            logging.info("Connected to database at %s", db_path)
+            return connection
+        except sqlite3.Error as e:
+            logging.error("Error connecting to database: %s", e)         
+            return None
+        except (OSError, ValueError) as e:
+            # More specific than generic Exception - catches file system errors and value errors
+            logging.error("General error in _create_connection: %s", e)
+            return None
+
     def connect(self):
         """Thiết lập kết nối đến cơ sở dữ liệu."""
-        try:
-            self.connection = sqlite3.connect(self.db_path)
-            self.connection.row_factory = sqlite3.Row  # Trả về kết quả dưới dạng dictionary
+        if self.connection is None:
+            self.connection = self._create_connection(self.db_path)
+        if self.connection:
             self.cursor = self.connection.cursor()
-            return True
-        except sqlite3.Error as e:
-            logging.error(f"Lỗi khi kết nối đến cơ sở dữ liệu: {e}")
-            return False
 
     def close(self):
         """Close database connection."""
         try:
-            if self.connection:
-                self.connection.commit()
-                self.connection.close()
-                self.connection = None
+            if hasattr(self, 'cursor') and self.cursor:
+                self.cursor.close()
                 logging.info("Database connection closed successfully")
-        except Exception as e:
-            logging.error(f"Error closing database connection: {e}")
+        except sqlite3.Error as e:
+            logging.error("Error closing database connection: %s",e)
 
     def commit(self):
         """Lưu các thay đổi vào cơ sở dữ liệu."""
         if self.connection:
             self.connection.commit()
 
+    def _ensure_connection(self):
+        """Ensure that the database connection and cursor are available."""
+        if not hasattr(self, 'cursor') or self.cursor is None or self.connection is None:
+            self.connect()
+
     def create_tables(self):
         """Tạo các bảng trong cơ sở dữ liệu nếu chưa tồn tại."""
+        self._ensure_connection()
         try:
             # Bảng Sinh viên
             self.cursor.execute('''
@@ -173,6 +199,7 @@ class DatabaseManager:
         Returns:
             list: Danh sách các kết quả từ truy vấn
         """
+        self._ensure_connection()
         try:
             self.cursor.execute(query, parameters)
             self.commit()
@@ -284,7 +311,7 @@ class DatabaseManager:
                 # Xử lý tương thích ngược với định dạng cũ (chỉ hash không có salt)
                 old_hash = hashlib.sha256(password.encode()).hexdigest()
                 return old_hash == stored_hash
-        except Exception as e:
+        except (ValueError, TypeError, IndexError) as e:
             logging.error(f"Lỗi khi xác thực mật khẩu: {e}")
             return False
     
@@ -376,7 +403,7 @@ class DatabaseManager:
             os.remove(photo_path)
             logging.info(f"Đã xóa ảnh sinh viên: {photo_path}")
             return True
-        except Exception as e:
+        except OSError as e:
             logging.error(f"Lỗi khi xóa ảnh sinh viên: {e}")
             return False
     
@@ -394,6 +421,7 @@ class DatabaseManager:
         Returns:
             int: ID của bản ghi nhật ký hoặc None nếu có lỗi
         """
+        self._ensure_connection()
         try:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
@@ -425,6 +453,7 @@ class DatabaseManager:
         Returns:
             list: Danh sách các hoạt động
         """
+        self._ensure_connection()
         try:
             query = """
             SELECT 
@@ -471,6 +500,7 @@ class DatabaseManager:
         Returns:
             list: Danh sách các hoạt động
         """
+        self._ensure_connection()
         query = """
         SELECT 
             a.log_id as id, 
@@ -496,6 +526,7 @@ class DatabaseManager:
         Returns:
             bool: True nếu cơ sở dữ liệu không có vấn đề, False nếu có lỗi
         """
+        self._ensure_connection()
         try:
             # Kiểm tra tính toàn vẹn bằng pragma
             self.cursor.execute("PRAGMA integrity_check")
@@ -519,6 +550,7 @@ class DatabaseManager:
         Returns:
             bool: True nếu tối ưu thành công, False nếu có lỗi
         """
+        self._ensure_connection()
         try:
             # VACUUM để giải phóng không gian đĩa không sử dụng
             self.cursor.execute("VACUUM")
@@ -568,7 +600,7 @@ class DatabaseManager:
             
             logging.info(f"Đã tạo bản sao lưu cơ sở dữ liệu tại: {backup_path}")
             return True
-        except Exception as e:
+        except (OSError, sqlite3.Error, shutil.Error) as e:
             logging.error(f"Lỗi khi tạo bản sao lưu cơ sở dữ liệu: {e}")
             
             # Đảm bảo kết nối được thiết lập lại
@@ -587,13 +619,14 @@ class DatabaseManager:
                 if os.path.exists(temp_file):
                     os.remove(temp_file)
                     logging.info(f"Đã xóa file tạm: {temp_file}")
-            except Exception as e:
+            except OSError as e:
                 logging.error(f"Không thể xóa file tạm {temp_file}: {e}")
         
         self.temp_files.clear()
     
     def ensure_tables_exist(self):
         """Ensure all required tables exist in the database."""
+        self._ensure_connection()
         try:
             # Check if tables exist by querying sqlite_master
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
@@ -618,6 +651,6 @@ class DatabaseManager:
                 logging.info("Created activity_log table")
                 
             return True
-        except Exception as e:
+        except sqlite3.Error as e:
             logging.error(f"Error ensuring tables exist: {e}")
             return False

@@ -6,11 +6,19 @@ import logging
 import configparser
 from pathlib import Path
 from dotenv import load_dotenv
+from utils.path_helper import PathHelper
+import importlib
 
 class ConfigManager:
     """Quản lý cấu hình ứng dụng"""
     
-    def __init__(self):
+    def __init__(self, config_file_path=None):
+        # Nếu có đường dẫn được cung cấp, sử dụng nó; nếu không, sử dụng đường dẫn mặc định
+        if config_file_path:
+            self.config_file = config_file_path
+        else:
+            self.config_file = os.path.join(os.path.dirname(__file__), '..', 'config.ini')
+        
         # Thư viện bắt buộc
         self.required_packages = {
             "PyQt6": "PyQt6",
@@ -101,29 +109,38 @@ class ConfigManager:
                 self.config['DEFAULT'][key] = value
     
     def get_db_path(self):
-        """Get database path from configuration or default location"""
-        # First check environment variable
-        db_path = os.getenv('DB_PATH')
-        
-        # Next check config file
-        if not db_path and 'database' in self._config:
-            db_path = self._config.get('database', {}).get('path')
+        """
+        Get database path from config file with fallback to default
+        """
+        try:
+            # Try to get from the config file
+            return self.config.get("database", "path")
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            # If not found, use default path and ensure directory exists
+            default_path = "data/student_db.db"
+            os.makedirs(os.path.dirname(default_path), exist_ok=True)
             
-        # Fallback to default path
-        if not db_path:
-            db_path = str(self.root_dir / 'DB' / 'student_management.db')
+            # Create the missing section
+            if not self.config.has_section("database"):
+                self.config.add_section("database")
+            self.config.set("database", "path", default_path)
             
-        logging.debug(f"Using database path: {db_path}")
-        return db_path
+            # Save the updated config
+            try:
+                with open(self.config_file, 'w', encoding='utf-8') as f:
+                    self.config.write(f)
+            except Exception as e:
+                logging.warning(f"Could not save default database configuration: {str(e)}")
+            return default_path
     
     def check_dependency(self, module_name):
         """Kiểm tra xem một thư viện đã được cài đặt chưa"""
         try:
-            __import__(module_name)
+            importlib.import_module(module_name)
             return True
         except ImportError:
             return False
-    
+
     def check_all_required_dependencies(self):
         """Kiểm tra tất cả các thư viện bắt buộc"""
         for module_name in self.required_packages:

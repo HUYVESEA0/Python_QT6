@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QWidget, QLabel, QVBoxLayout, QHBoxLayout,
                            QPushButton, QFileDialog, QMessageBox,
                            QDialog, QMenu)
-from PyQt6.QtCore import Qt, pyqtSignal, QRect, QSize, QPoint
+from PyQt6.QtCore import Qt, pyqtSignal, QRect, QSize, QPoint  # Đảm bảo đã import QRect
 from PyQt6.QtGui import QPixmap, QImage, QIcon, QPainter, QPen, QColor, QBrush, QTransform, QAction
 import os
 import logging
@@ -151,13 +151,25 @@ class PhotoFrame(QWidget):
         """)
         layout.addWidget(self.image_label)
         
-        # Nút chọn ảnh
+        # Nút chọn ảnh và nút mới
         button_layout = QHBoxLayout()
         
         self.change_button = QPushButton("Chọn ảnh")
         self.change_button.setIcon(QIcon("resources/icons/photo.png") if os.path.exists("resources/icons/photo.png") else QIcon())
         self.change_button.clicked.connect(self.choose_photo)
         button_layout.addWidget(self.change_button)
+
+        # Nút mới: Xem ảnh lớn
+        self.view_button = QPushButton("Xem ảnh lớn")
+        self.view_button.setIcon(QIcon("resources/icons/view.png") if os.path.exists("resources/icons/view.png") else QIcon())
+        self.view_button.clicked.connect(self.view_large_photo)
+        button_layout.addWidget(self.view_button)
+
+        # Nút mới: Tải lại ảnh (ví dụ)
+        self.reload_button = QPushButton("Tải lại ảnh")
+        self.reload_button.setIcon(QIcon("resources/icons/refresh.png") if os.path.exists("resources/icons/refresh.png") else QIcon())
+        self.reload_button.clicked.connect(self.reload_photo)
+        button_layout.addWidget(self.reload_button)
         
         # Menu ngữ cảnh
         self.context_menu = QMenu(self)
@@ -207,7 +219,7 @@ class PhotoFrame(QWidget):
         Args:
             photo_path (str): Đường dẫn đến file ảnh
         """
-        if not photo_path or not os.path.exists(photo_path):
+        if not photo_path or not os.path.exists(photo_path) or photo_path.endswith("default_avatar.png"):
             self.set_default_photo()
             return
         
@@ -257,57 +269,141 @@ class PhotoFrame(QWidget):
             self.set_default_photo()
             QMessageBox.warning(self, "Lỗi", f"Không thể tải ảnh: {str(e)}")
     
+    def init_ui(self):
+        """Thiết lập giao diện"""
+        layout = QVBoxLayout()
+        
+        # Label hiển thị ảnh
+        self.image_label = QLabel()
+        self.image_label.setFixedSize(*self.default_size)
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_label.setStyleSheet("""
+            QLabel {
+                border: 1px solid #cccccc;
+                background-color: #f5f5f5;
+            }
+        """)
+        layout.addWidget(self.image_label)
+        
+        # Nút chọn ảnh và nút mới
+        button_layout = QHBoxLayout()
+        
+        self.change_button = QPushButton("Chọn ảnh")
+        self.change_button.setIcon(QIcon("resources/icons/photo.png") if os.path.exists("resources/icons/photo.png") else QIcon())
+        self.change_button.clicked.connect(self.choose_photo)
+        button_layout.addWidget(self.change_button)
+
+        # Nút mới: Xem ảnh lớn
+        self.view_button = QPushButton("Xem ảnh lớn")
+        self.view_button.setIcon(QIcon("resources/icons/view.png") if os.path.exists("resources/icons/view.png") else QIcon())
+        self.view_button.clicked.connect(self.view_large_photo)
+        button_layout.addWidget(self.view_button)
+
+        # Nút mới: Tải lại ảnh (ví dụ)
+        self.reload_button = QPushButton("Tải lại ảnh")
+        self.reload_button.setIcon(QIcon("resources/icons/refresh.png") if os.path.exists("resources/icons/refresh.png") else QIcon())
+        self.reload_button.clicked.connect(self.reload_photo)
+        button_layout.addWidget(self.reload_button)
+        
+        # Menu ngữ cảnh
+        self.context_menu = QMenu(self)
+        
+        self.select_action = self.context_menu.addAction("Chọn ảnh")
+        self.select_action.triggered.connect(self.choose_photo)
+        
+        self.crop_action = self.context_menu.addAction("Cắt ảnh")
+        self.crop_action.triggered.connect(self.crop_photo)
+        
+        self.rotate_action = self.context_menu.addAction("Xoay ảnh")
+        self.rotate_action.triggered.connect(self.rotate_photo)
+        
+        # Thêm menu bộ lọc
+        self.filter_menu = QMenu("Bộ lọc", self.context_menu)
+        
+        self.grayscale_action = self.filter_menu.addAction("Đen trắng")
+        self.grayscale_action.triggered.connect(lambda: self.apply_filter("grayscale"))
+        
+        self.sepia_action = self.filter_menu.addAction("Sepia")
+        self.sepia_action.triggered.connect(lambda: self.apply_filter("sepia"))
+        
+        self.context_menu.addMenu(self.filter_menu)
+        
+        self.remove_action = self.context_menu.addAction("Xóa ảnh")
+        self.remove_action.triggered.connect(self.remove_photo)
+        
+        self.image_label.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.image_label.customContextMenuRequested.connect(self.show_context_menu)
+        
+        layout.addLayout(button_layout)
+        
+        # Hiển thị ảnh mặc định
+        self.set_default_photo()
+        
+        # Vô hiệu hóa các action không áp dụng được với ảnh mặc định
+        self.crop_action.setEnabled(False)
+        self.rotate_action.setEnabled(False)
+        self.filter_menu.setEnabled(False)  # Thêm dòng này
+        
+        self.setLayout(layout)
+    
     def set_default_photo(self):
         """Đặt ảnh mặc định"""
         default_path = "resources/default_avatar.png"
-        
         if os.path.exists(default_path):
-            self.set_photo(default_path)
-            self.photo_path = ""  # Reset photo path for default photo
+            pixmap = QPixmap(default_path)
         else:
-            # Tạo ảnh pixmap trống nếu không tìm thấy ảnh mặc định
             pixmap = QPixmap(*self.default_size)
             pixmap.fill(Qt.GlobalColor.lightGray)
-            
-            # Vẽ biểu tượng người dùng vào pixmap
             painter = QPainter(pixmap)
             painter.setPen(QPen(QColor("#555555"), 2))
-            
-            # Vẽ đầu
             center_x = self.default_size[0] // 2
             head_y = self.default_size[1] // 3
             head_radius = min(self.default_size) // 5
             painter.drawEllipse(center_x - head_radius, head_y - head_radius, 
                                head_radius * 2, head_radius * 2)
-            
-            # Vẽ thân
             body_top_y = head_y + head_radius + 5
-            body_width = head_radius * 2.5
+            body_width = int(head_radius * 2.5)
             body_height = self.default_size[1] // 3
-            
             painter.drawRoundedRect(
-                center_x - body_width // 2,
-                body_top_y,
-                body_width,
-                body_height,
+                QRect(
+                    int(center_x - body_width // 2),
+                    int(body_top_y),
+                    int(body_width),
+                    int(body_height)
+                ),
                 body_width // 4,
                 body_width // 4
             )
-            
             painter.end()
-            
-            self.original_pixmap = pixmap
-            self.image_label.setPixmap(pixmap)
-            self.photo_path = ""
-            
-            # Tắt các action cắt và xoay ảnh
-            self.crop_action.setEnabled(False)
-            self.rotate_action.setEnabled(False)
+        self.original_pixmap = pixmap
+        scaled_pixmap = pixmap.scaled(
+            *self.default_size, 
+            Qt.AspectRatioMode.KeepAspectRatio, 
+            Qt.TransformationMode.SmoothTransformation
+        )
+        self.image_label.setPixmap(scaled_pixmap)
+        self.photo_path = ""  # Luôn rỗng với ảnh mặc định
+        self.crop_action.setEnabled(False)
+        self.rotate_action.setEnabled(False)
+        self.filter_menu.setEnabled(False)
+        # Không phát tín hiệu photo_changed với ảnh mặc định
+
+    def get_photo_path(self):
+        """
+        Lấy đường dẫn đến file ảnh
+        
+        Returns:
+            str: Đường dẫn đến file ảnh hiện tại
+        """
+        # Nếu đang sử dụng ảnh mặc định hoặc không có ảnh, trả về rỗng
+        if not self.photo_path or self.photo_path.endswith("default_avatar.png"):
+            return ""
+        return self.photo_path
     
-    def show_context_menu(self, position):
-        """Hiển thị menu chuột phải"""
-        self.context_menu.exec(self.image_label.mapToGlobal(position))
-    
+    def reload_photo(self):
+        """Nút tải lại ảnh đại diện (ví dụ: đặt lại về mặc định)"""
+        self.set_default_photo()
+
     def choose_photo(self):
         """Chọn ảnh từ máy tính"""
         options = QFileDialog.Option.ReadOnly
@@ -377,18 +473,6 @@ class PhotoFrame(QWidget):
         
         self.set_photo(temp_path)
     
-    def get_photo_path(self):
-        """
-        Lấy đường dẫn đến file ảnh
-        
-        Returns:
-            str: Đường dẫn đến file ảnh hiện tại
-        """
-        # Nếu đang sử dụng ảnh mặc định, trả về rỗng
-        if not self.photo_path or self.photo_path.endswith("default_avatar.png"):
-            return ""
-        return self.photo_path
-    
     def cleanup_temp_files(self):
         """Xóa tất cả các file ảnh tạm đã tạo"""
         # Xóa các file tạm của instance này
@@ -441,3 +525,27 @@ class PhotoFrame(QWidget):
         filtered_pixmap = QPixmap.fromImage(image)
         filtered_pixmap.save(temp_path)
         self.set_photo(temp_path)
+    
+    def view_large_photo(self):
+        """Hiển thị ảnh đại diện ở kích thước lớn hơn trong một dialog mới"""
+        if not self.original_pixmap:
+            return
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Xem ảnh đại diện")
+        dlg.setMinimumSize(400, 500)
+        vbox = QVBoxLayout(dlg)
+        lbl = QLabel()
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Hiển thị ảnh lớn hơn, giữ nguyên tỉ lệ
+        pix = self.original_pixmap.scaled(350, 420, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        lbl.setPixmap(pix)
+        vbox.addWidget(lbl)
+        btn = QPushButton("Đóng")
+        btn.clicked.connect(dlg.accept)
+        vbox.addWidget(btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        dlg.exec()
+
+    def show_context_menu(self, pos):
+        """Hiển thị menu ngữ cảnh tại vị trí chuột phải"""
+        global_pos = self.image_label.mapToGlobal(pos)
+        self.context_menu.exec(global_pos)
