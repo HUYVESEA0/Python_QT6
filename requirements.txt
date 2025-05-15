@@ -2,17 +2,7 @@
 PyQt6>=6.4.0
 PyJWT>=2.6.0
 python-dotenv>=1.0.0
-
-# Các gói tùy chọn cho tính năng nâng cao
-# Biểu đồ và trực quan hóa dữ liệu
 matplotlib>=3.6.0
-
-# Xử lý dữ liệu và báo cáo
 pandas>=1.5.0
-
-# Xuất dữ liệu sang các định dạng khác nhau
-reportlab>=3.6.0  # Để xuất PDF
-openpyxl>=3.0.0   # Để xuất Excel
-
-# Bảo mật và mã hóa
+reportlab>=3.6.0
 cryptography>=38.0.0
