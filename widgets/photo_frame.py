@@ -129,6 +129,7 @@ class PhotoFrame(QWidget):
     
     def __init__(self, parent=None, default_size=(150, 180)):
         super().__init__(parent)
+        self.setObjectName("photoFrame")
         self.default_size = default_size
         self.photo_path = ""
         self.original_pixmap = None

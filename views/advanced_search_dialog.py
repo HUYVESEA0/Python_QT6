@@ -10,6 +10,7 @@ class AdvancedStudentSearchDialog(QDialog):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("advancedSearchDialog")
         self.setWindowTitle("Tìm kiếm nâng cao")
         self.setMinimumWidth(500)
         self.init_ui()

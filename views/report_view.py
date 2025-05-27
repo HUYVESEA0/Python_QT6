@@ -28,6 +28,7 @@ class ReportView(QWidget):
             report_controller (ReportController): Controller quản lý báo cáo
         """
         super().__init__()
+        self.setObjectName("reportView")
         self.report_controller = report_controller
         self.init_ui()
     
@@ -359,7 +360,7 @@ class ReportView(QWidget):
                 student_info = f"""
                 <h2>Thông tin sinh viên</h2>
                 <p><b>Mã số:</b> {student['student_id']}</p>
-                <p><b>Họ tên:</b> {student['full_name']}</p>
+                <p><b>Họ tên:</b> {student['ho_ten']}</p>
                 <p><b>Giới tính:</b> {student['gender']}</p>
                 <p><b>Ngày sinh:</b> {student['date_of_birth']}</p>
                 <p><b>Trạng thái:</b> {student['status']}</p>

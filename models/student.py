@@ -7,87 +7,84 @@ class Student:
     """
     Lớp đại diện cho một sinh viên trong hệ thống.
     """
-    def __init__(self, student_id="", full_name="", date_of_birth=None, 
-                 gender="", email="", phone="", address="", 
-                 enrolled_date=None, status="Active", photo_path=""):
+    def __init__(self, ma_sinh_vien="", ho_ten="", ngay_sinh=None, 
+                 gioi_tinh="", email="", so_dien_thoai="", dia_chi="", 
+                 ngay_nhap_hoc=None, trang_thai="Đang học", duong_dan_anh=""):
         """
         Khởi tạo một đối tượng sinh viên.
         
         Args:
-            student_id (str): Mã số sinh viên
-            full_name (str): Họ và tên sinh viên
-            date_of_birth (str): Ngày sinh (định dạng YYYY-MM-DD)
-            gender (str): Giới tính
+            ma_sinh_vien (str): Mã số sinh viên
+            ho_ten (str): Họ và tên sinh viên
+            ngay_sinh (str): Ngày sinh (định dạng YYYY-MM-DD)
+            gioi_tinh (str): Giới tính
             email (str): Địa chỉ email
-            phone (str): Số điện thoại
-            address (str): Địa chỉ
-            enrolled_date (str): Ngày nhập học (định dạng YYYY-MM-DD)
-            status (str): Trạng thái của sinh viên (Active, Inactive, Graduated, etc.)
-            photo_path (str): Đường dẫn đến file ảnh đại diện
+            so_dien_thoai (str): Số điện thoại
+            dia_chi (str): Địa chỉ
+            ngay_nhap_hoc (str): Ngày nhập học (định dạng YYYY-MM-DD)
+            trang_thai (str): Trạng thái của sinh viên
+            duong_dan_anh (str): Đường dẫn đến file ảnh đại diện
         """
-        self.student_id = student_id
-        self.full_name = full_name
-        self.date_of_birth = date_of_birth if date_of_birth else ""
-        self.gender = gender
+        self.ma_sinh_vien = ma_sinh_vien
+        self.ho_ten = ho_ten
+        self.ngay_sinh = ngay_sinh if ngay_sinh else ""
+        self.gioi_tinh = gioi_tinh
         self.email = email
-        self.phone = phone
-        self.address = address
-        self.enrolled_date = enrolled_date if enrolled_date else datetime.now().strftime("%Y-%m-%d")
-        self.status = status
+        self.so_dien_thoai = so_dien_thoai
+        self.dia_chi = dia_chi
+        self.ngay_nhap_hoc = ngay_nhap_hoc if ngay_nhap_hoc else datetime.now().strftime("%Y-%m-%d")
+        self.trang_thai = trang_thai
         # Nếu là ảnh mặc định thì để rỗng
-        if photo_path and photo_path.endswith("default_avatar.png"):
-            self.photo_path = ""
+        if duong_dan_anh and duong_dan_anh.endswith("default_avatar.png"):
+            self.duong_dan_anh = ""
         else:
-            self.photo_path = photo_path
+            self.duong_dan_anh = duong_dan_anh
 
     @classmethod
     def from_dict(cls, data):
         """
         Tạo đối tượng sinh viên từ dictionary.
-        
         Args:
             data (dict): Dictionary chứa dữ liệu sinh viên
-            
         Returns:
             Student: Đối tượng sinh viên mới
         """
-        photo_path = data.get('photo_path', '')
-        if photo_path and photo_path.endswith("default_avatar.png"):
-            photo_path = ""
+        duong_dan_anh = data.get('duong_dan_anh', '')
+        if duong_dan_anh and duong_dan_anh.endswith("default_avatar.png"):
+            duong_dan_anh = ""
         return cls(
-            student_id=data.get('student_id', ''),
-            full_name=data.get('full_name', ''),
-            date_of_birth=data.get('date_of_birth', ''),
-            gender=data.get('gender', ''),
+            ma_sinh_vien=data.get('ma_sinh_vien', ''),
+            ho_ten=data.get('ho_ten', ''),
+            ngay_sinh=data.get('ngay_sinh', ''),
+            gioi_tinh=data.get('gioi_tinh', ''),
             email=data.get('email', ''),
-            phone=data.get('phone', ''),
-            address=data.get('address', ''),
-            enrolled_date=data.get('enrolled_date', ''),
-            status=data.get('status', 'Active'),
-            photo_path=photo_path
+            so_dien_thoai=data.get('so_dien_thoai', ''),
+            dia_chi=data.get('dia_chi', ''),
+            ngay_nhap_hoc=data.get('ngay_nhap_hoc', ''),
+            trang_thai=data.get('trang_thai', 'Đang học'),
+            duong_dan_anh=duong_dan_anh
         )
     
     def to_dict(self):
         """
         Chuyển đổi đối tượng sinh viên thành dictionary.
-        
         Returns:
             dict: Dictionary chứa thông tin sinh viên
         """
-        photo_path = self.photo_path
-        if photo_path and photo_path.endswith("default_avatar.png"):
-            photo_path = ""
+        duong_dan_anh = self.duong_dan_anh
+        if duong_dan_anh and duong_dan_anh.endswith("default_avatar.png"):
+            duong_dan_anh = ""
         return {
-            'student_id': self.student_id,
-            'full_name': self.full_name,
-            'date_of_birth': self.date_of_birth,
-            'gender': self.gender,
+            'ma_sinh_vien': self.ma_sinh_vien,
+            'ho_ten': self.ho_ten,
+            'ngay_sinh': self.ngay_sinh,
+            'gioi_tinh': self.gioi_tinh,
             'email': self.email,
-            'phone': self.phone,
-            'address': self.address,
-            'enrolled_date': self.enrolled_date,
-            'status': self.status,
-            'photo_path': photo_path
+            'so_dien_thoai': self.so_dien_thoai,
+            'dia_chi': self.dia_chi,
+            'ngay_nhap_hoc': self.ngay_nhap_hoc,
+            'trang_thai': self.trang_thai,
+            'duong_dan_anh': duong_dan_anh
         }
     
     def get_photo(self, default_size=(100, 100)):
@@ -100,8 +97,8 @@ class Student:
         Returns:
             QPixmap: Ảnh đại diện dạng QPixmap
         """
-        if self.photo_path and os.path.exists(self.photo_path):
-            pixmap = QPixmap(self.photo_path)
+        if self.duong_dan_anh and os.path.exists(self.duong_dan_anh):
+            pixmap = QPixmap(self.duong_dan_anh)
             return pixmap.scaled(*default_size, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
         else:
             # Trả về ảnh mặc định
@@ -112,14 +109,12 @@ class Student:
                 # Tạo ảnh pixmap trống nếu không tìm thấy ảnh mặc định
                 pixmap = QPixmap(*default_size)
                 pixmap.fill(Qt.GlobalColor.lightGray)
-            
             return pixmap.scaled(*default_size, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
     
     def __str__(self):
         """
         Định dạng chuỗi đại diện cho sinh viên.
-        
         Returns:
             str: Chuỗi thông tin sinh viên
         """
-        return f"{self.student_id} - {self.full_name}"
+        return f"{self.ma_sinh_vien} - {self.ho_ten}"

@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         
         # Hiển thị thông tin người dùng đăng nhập
         if self.current_user:
-            user_info = f"Người dùng: {self.current_user.full_name} ({self.current_user.role})"
+            user_info = f"Người dùng: {self.current_user.ho_ten} ({self.current_user.vai_tro})"
             self.user_label = QLabel(user_info)
             self.status_bar.addPermanentWidget(self.user_label)
         

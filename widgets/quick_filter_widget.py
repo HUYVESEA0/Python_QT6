@@ -21,6 +21,7 @@ class QuickFilterWidget(QWidget):
             parent (QWidget): Widget cha
         """
         super().__init__(parent)
+        self.setObjectName("quickFilterWidget")
         self.filter_fields = filter_fields or {}
         self.current_filters = {}
         self.filter_widgets = {}

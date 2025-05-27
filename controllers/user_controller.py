@@ -32,9 +32,9 @@ class UserController:
             User: Đối tượng user nếu xác thực thành công, None nếu thất bại
         """
         query = """
-        SELECT user_id, username, password_hash, full_name, email, role 
-        FROM users 
-        WHERE username = ? AND is_active = 1
+        SELECT ma_nguoi_dung, ten_dang_nhap, mat_khau_ma_hoa, ho_ten, email, vai_tro 
+        FROM nguoi_dung 
+        WHERE ten_dang_nhap = ? AND kich_hoat = 1
         """
         
         result = self.db_manager.execute_query(query, (username,))
@@ -44,22 +44,22 @@ class UserController:
             return None
         
         user_data = result[0]
-        if not self.db_manager.verify_password(password, user_data['password_hash']):
+        if not self.db_manager.verify_password(password, user_data['mat_khau_ma_hoa']):
             logging.warning(f"Đăng nhập thất bại: Mật khẩu không đúng cho người dùng '{username}'")
             return None
         
         # Cập nhật thời gian đăng nhập cuối
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        update_query = "UPDATE users SET last_login = ? WHERE username = ?"
+        update_query = "UPDATE nguoi_dung SET lan_dang_nhap_cuoi = ? WHERE ten_dang_nhap = ?"
         self.db_manager.execute_update(update_query, (current_time, username))
         
         # Ghi log đăng nhập
         user = User(
-            user_id=user_data['user_id'],
-            username=user_data['username'],
-            full_name=user_data['full_name'],
+            user_id=user_data['ma_nguoi_dung'],
+            ten_dang_nhap=user_data['ten_dang_nhap'],
+            ho_ten=user_data['ho_ten'],
             email=user_data['email'],
-            role=user_data['role']
+            vai_tro=user_data['vai_tro']
         )
         
         self.db_manager.log_activity(
@@ -80,7 +80,7 @@ class UserController:
         Returns:
             list: Danh sách các đối tượng User
         """
-        query = "SELECT user_id, username, full_name, email, role, is_active, created_date, last_login FROM users"
+        query = "SELECT ma_nguoi_dung, ten_dang_nhap, ho_ten, email, vai_tro, kich_hoat, ngay_tao, lan_dang_nhap_cuoi FROM nguoi_dung"
         result = self.db_manager.execute_query(query)
         
         users = []
@@ -101,9 +101,9 @@ class UserController:
             User: Đối tượng người dùng nếu tìm thấy, None nếu không
         """
         query = """
-        SELECT user_id, username, full_name, email, role, is_active, created_date, last_login 
-        FROM users 
-        WHERE user_id = ?
+        SELECT ma_nguoi_dung, ten_dang_nhap, ho_ten, email, vai_tro, kich_hoat, ngay_tao, lan_dang_nhap_cuoi 
+        FROM nguoi_dung 
+        WHERE ma_nguoi_dung = ?
         """
         
         result = self.db_manager.execute_query(query, (user_id,))
@@ -125,9 +125,9 @@ class UserController:
             User: Đối tượng người dùng nếu tìm thấy, None nếu không
         """
         query = """
-        SELECT user_id, username, full_name, email, role, is_active, created_date, last_login 
-        FROM users 
-        WHERE username = ?
+        SELECT ma_nguoi_dung, ten_dang_nhap, ho_ten, email, vai_tro, kich_hoat, ngay_tao, lan_dang_nhap_cuoi 
+        FROM nguoi_dung 
+        WHERE ten_dang_nhap = ?
         """
         
         result = self.db_manager.execute_query(query, (username,))
@@ -161,7 +161,7 @@ class UserController:
         
         # Tạo truy vấn
         query = """
-        INSERT INTO users (username, password_hash, full_name, email, role, is_active, created_date)
+        INSERT INTO nguoi_dung (ten_dang_nhap, mat_khau_ma_hoa, ho_ten, email, vai_tro, kich_hoat, ngay_tao)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """
         
@@ -210,9 +210,9 @@ class UserController:
         """
         # Tạo truy vấn
         query = """
-        UPDATE users 
-        SET full_name = ?, email = ?, role = ?, is_active = ?
-        WHERE user_id = ?
+        UPDATE nguoi_dung 
+        SET ho_ten = ?, email = ?, vai_tro = ?, kich_hoat = ?
+        WHERE ma_nguoi_dung = ?
         """
         
         params = (
@@ -269,7 +269,7 @@ class UserController:
         username = user.username
         
         # Thực hiện xóa
-        query = "DELETE FROM users WHERE user_id = ?"
+        query = "DELETE FROM nguoi_dung WHERE ma_nguoi_dung = ?"
         rows_affected = self.db_manager.execute_delete(query, (user_id,))
         success = rows_affected > 0
         
@@ -303,7 +303,7 @@ class UserController:
             bool: True nếu thành công, False nếu thất bại
         """
         # Kiểm tra mật khẩu cũ
-        query = "SELECT user_id, password_hash FROM users WHERE username = ?"
+        query = "SELECT ma_nguoi_dung, mat_khau_ma_hoa FROM nguoi_dung WHERE ten_dang_nhap = ?"
         result = self.db_manager.execute_query(query, (username,))
         
         if not result:
@@ -311,7 +311,7 @@ class UserController:
             return False
         
         user_data = result[0]
-        if not self.db_manager.verify_password(old_password, user_data['password_hash']):
+        if not self.db_manager.verify_password(old_password, user_data['mat_khau_ma_hoa']):
             logging.warning(f"Đổi mật khẩu thất bại: Mật khẩu cũ không đúng cho người dùng '{username}'")
             return False
         
@@ -319,7 +319,7 @@ class UserController:
         new_password_hash = self.db_manager.hash_password(new_password)
         
         # Cập nhật mật khẩu
-        update_query = "UPDATE users SET password_hash = ? WHERE username = ?"
+        update_query = "UPDATE nguoi_dung SET mat_khau_ma_hoa = ? WHERE ten_dang_nhap = ?"
         rows_affected = self.db_manager.execute_update(update_query, (new_password_hash, username))
         
         if rows_affected > 0:

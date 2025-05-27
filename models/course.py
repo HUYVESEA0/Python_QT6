@@ -2,44 +2,41 @@ class Course:
     """
     Lớp đại diện cho một khóa học trong hệ thống.
     """
-    def __init__(self, course_id="", course_name="", credits=0, 
-                 instructor="", description="", max_students=50):
+    def __init__(self, ma_khoa_hoc="", ten_khoa_hoc="", so_tin_chi=0, 
+                 giang_vien="", mo_ta="", so_luong_toi_da=50):
         """
         Khởi tạo một đối tượng khóa học.
-        
         Args:
-            course_id (str): Mã khóa học
-            course_name (str): Tên khóa học
-            credits (int): Số tín chỉ
-            instructor (str): Giảng viên
-            description (str): Mô tả
-            max_students (int): Số lượng sinh viên tối đa
+            ma_khoa_hoc (str): Mã khóa học
+            ten_khoa_hoc (str): Tên khóa học
+            so_tin_chi (int): Số tín chỉ
+            giang_vien (str): Giảng viên
+            mo_ta (str): Mô tả
+            so_luong_toi_da (int): Số lượng sinh viên tối đa
         """
-        self.course_id = course_id
-        self.course_name = course_name
-        self.credits = credits
-        self.instructor = instructor
-        self.description = description
-        self.max_students = max_students
+        self.ma_khoa_hoc = ma_khoa_hoc
+        self.ten_khoa_hoc = ten_khoa_hoc
+        self.so_tin_chi = so_tin_chi
+        self.giang_vien = giang_vien
+        self.mo_ta = mo_ta
+        self.so_luong_toi_da = so_luong_toi_da
     
     @classmethod
     def from_dict(cls, data):
         """
         Tạo đối tượng khóa học từ dictionary.
-        
         Args:
             data (dict): Dictionary chứa dữ liệu khóa học
-            
         Returns:
             Course: Đối tượng khóa học mới
         """
         return cls(
-            course_id=data.get('course_id', ''),
-            course_name=data.get('course_name', ''),
-            credits=data.get('credits', 0),
-            instructor=data.get('instructor', ''),
-            description=data.get('description', ''),
-            max_students=data.get('max_students', 50)
+            ma_khoa_hoc=data.get('ma_khoa_hoc', ''),
+            ten_khoa_hoc=data.get('ten_khoa_hoc', ''),
+            so_tin_chi=data.get('so_tin_chi', 0),
+            giang_vien=data.get('giang_vien', ''),
+            mo_ta=data.get('mo_ta', ''),
+            so_luong_toi_da=data.get('so_luong_toi_da', 50)
         )
     
     def to_dict(self):
@@ -50,12 +47,12 @@ class Course:
             dict: Dictionary chứa thông tin khóa học
         """
         return {
-            'course_id': self.course_id,
-            'course_name': self.course_name,
-            'credits': self.credits,
-            'instructor': self.instructor,
-            'description': self.description,
-            'max_students': self.max_students
+            'ma_khoa_hoc': self.ma_khoa_hoc,
+            'ten_khoa_hoc': self.ten_khoa_hoc,
+            'so_tin_chi': self.so_tin_chi,
+            'giang_vien': self.giang_vien,
+            'mo_ta': self.mo_ta,
+            'so_luong_toi_da': self.so_luong_toi_da
         }
     
     def __str__(self):
@@ -65,4 +62,4 @@ class Course:
         Returns:
             str: Chuỗi thông tin khóa học
         """
-        return f"{self.course_id} - {self.course_name} ({self.credits} tín chỉ)"
+        return f"{self.ma_khoa_hoc} - {self.ten_khoa_hoc} ({self.so_tin_chi} tín chỉ)"

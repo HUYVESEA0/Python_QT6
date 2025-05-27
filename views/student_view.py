@@ -312,28 +312,28 @@ class StudentView(QWidget):
         # Tắt việc cập nhật giao diện để tăng hiệu suất
         self.table.setUpdatesEnabled(False)
         self.table.setSortingEnabled(False)
-        
+
         # Lưu trạng thái của thanh cuộn để khôi phục sau
         scrollbar = self.table.verticalScrollBar()
-        
+
         # Xóa tất cả các dòng hiện có
         self.table.setRowCount(0)
-        
+
         # Thiết lập số dòng mới (tốc độ hơn là thêm từng dòng một)
         self.table.setRowCount(len(students))
-        
+
         for row, student in enumerate(students):
             # Tạo các item trong bảng
-            id_item = QTableWidgetItem(student.student_id)
-            name_item = QTableWidgetItem(student.full_name)
-            dob_item = QTableWidgetItem(student.date_of_birth)
-            gender_item = QTableWidgetItem(student.gender)
+            id_item = QTableWidgetItem(student.ma_sinh_vien)
+            name_item = QTableWidgetItem(student.ho_ten)
+            dob_item = QTableWidgetItem(student.ngay_sinh)
+            gender_item = QTableWidgetItem(student.gioi_tinh)
             email_item = QTableWidgetItem(student.email)
-            phone_item = QTableWidgetItem(student.phone)
-            address_item = QTableWidgetItem(student.address)
-            enrolled_date_item = QTableWidgetItem(student.enrolled_date)
-            status_item = QTableWidgetItem(student.status)
-            
+            phone_item = QTableWidgetItem(student.so_dien_thoai)
+            address_item = QTableWidgetItem(student.dia_chi)
+            enrolled_date_item = QTableWidgetItem(student.ngay_nhap_hoc)
+            status_item = QTableWidgetItem(student.trang_thai)
+
             # Thiết lập các item vào bảng
             self.table.setItem(row, 0, id_item)
             self.table.setItem(row, 1, name_item)
@@ -344,24 +344,24 @@ class StudentView(QWidget):
             self.table.setItem(row, 6, address_item)
             self.table.setItem(row, 7, enrolled_date_item)
             self.table.setItem(row, 8, status_item)
-            
+
             # Thiết lập màu nền dựa trên trạng thái sinh viên
-            if student.status == "Đang học":
+            if student.trang_thai == "Đang học":
                 status_item.setBackground(QColor(200, 255, 200))  # Xanh lá nhạt
-            elif student.status == "Tạm nghỉ":
+            elif student.trang_thai == "Tạm nghỉ":
                 status_item.setBackground(QColor(255, 255, 200))  # Vàng nhạt
-            elif student.status == "Đã tốt nghiệp":
+            elif student.trang_thai == "Đã tốt nghiệp":
                 status_item.setBackground(QColor(200, 200, 255))  # Xanh dương nhạt
-            elif student.status == "Đã thôi học":
+            elif student.trang_thai == "Đã thôi học":
                 status_item.setBackground(QColor(255, 200, 200))  # Đỏ nhạt
-        
+
         # Khôi phục tính năng cập nhật giao diện và vị trí cuộn
         self.table.setSortingEnabled(True)
         self.table.setUpdatesEnabled(True)
-        
+
         # Cập nhật nhãn tổng số sinh viên
         self.total_students_label.setText(f"Tổng số: {len(students)} sinh viên")
-        
+
         # Align text to the left in all columns
         for row in range(len(students)):
             for col in range(9):
@@ -402,7 +402,7 @@ class StudentView(QWidget):
                 search_text = value.lower()
                 filtered_students = [s for s in filtered_students if 
                                     search_text in s.student_id.lower() or
-                                    search_text in s.full_name.lower() or
+                                    search_text in s.ho_ten.lower() or
                                     search_text in s.email.lower()]
         
         # Cập nhật dữ liệu hiển thị
@@ -421,7 +421,7 @@ class StudentView(QWidget):
         """
         # Các trường tương ứng với cột trong bảng
         column_fields = [
-            "student_id", "full_name", "date_of_birth", "gender",
+            "student_id", "ho_ten", "date_of_birth", "gender",
             "email", "phone", "address", "enrolled_date", "status"
         ]
         
@@ -455,47 +455,47 @@ class StudentView(QWidget):
         if not student:
             return
         
-        self.id_input.setText(student.student_id)
-        self.name_input.setText(student.full_name)
+        self.id_input.setText(student.ma_sinh_vien)
+        self.name_input.setText(student.ho_ten)
         
-        if student.date_of_birth:
+        if student.ngay_sinh:
             try:
-                dob = QDate.fromString(student.date_of_birth, "yyyy-MM-dd")
+                dob = QDate.fromString(student.ngay_sinh, "yyyy-MM-dd")
                 self.dob_input.setDate(dob)
             except:
                 self.dob_input.setDate(QDate.currentDate())
         
         gender_index = 0
-        if student.gender == "Nữ":
+        if student.gioi_tinh == "Nữ":
             gender_index = 1
-        elif student.gender == "Khác":
+        elif student.gioi_tinh == "Khác":
             gender_index = 2
         self.gender_input.setCurrentIndex(gender_index)
         
         self.email_input.setText(student.email)
-        self.phone_input.setText(student.phone)
-        self.address_input.setText(student.address)
+        self.phone_input.setText(student.so_dien_thoai)
+        self.address_input.setText(student.dia_chi)
         
-        if student.enrolled_date:
+        if student.ngay_nhap_hoc:
             try:
-                enrolled = QDate.fromString(student.enrolled_date, "yyyy-MM-dd")
+                enrolled = QDate.fromString(student.ngay_nhap_hoc, "yyyy-MM-dd")
                 self.enroll_date_input.setDate(enrolled)
             except:
                 self.enroll_date_input.setDate(QDate.currentDate())
         
         status_index = 0
-        if student.status == "Đang học":
+        if student.trang_thai == "Đang học":
             status_index = 0
-        elif student.status == "Tạm nghỉ":
+        elif student.trang_thai == "Tạm nghỉ":
             status_index = 1
-        elif student.status == "Đã tốt nghiệp":
+        elif student.trang_thai == "Đã tốt nghiệp":
             status_index = 2
-        elif student.status == "Đã thôi học":
+        elif student.trang_thai == "Đã thôi học":
             status_index = 3
         self.status_input.setCurrentIndex(status_index)
         
         # Hiển thị ảnh đại diện
-        self.photo_frame.set_photo(student.photo_path)
+        self.photo_frame.set_photo(student.duong_dan_anh)
     
     def get_form_data(self):
         """
@@ -504,22 +504,22 @@ class StudentView(QWidget):
         Returns:
             Student: Đối tượng sinh viên từ form.
         """
-        student_id = self.id_input.text().strip()
-        full_name = self.name_input.text().strip()
-        date_of_birth = self.dob_input.date().toString("yyyy-MM-dd") if hasattr(self, 'dob_input') else ""
-        gender = self.gender_input.currentText() if hasattr(self, 'gender_input') else ""
+        ma_sinh_vien = self.id_input.text().strip()
+        ho_ten = self.name_input.text().strip()
+        ngay_sinh = self.dob_input.date().toString("yyyy-MM-dd") if hasattr(self, 'dob_input') else ""
+        gioi_tinh = self.gender_input.currentText() if hasattr(self, 'gender_input') else ""
         email = self.email_input.text().strip()
-        phone = self.phone_input.text().strip()
-        address = self.address_input.text().strip()
-        enrolled_date = self.enroll_date_input.date().toString("yyyy-MM-dd") if hasattr(self, 'enroll_date_input') else ""
-        status = self.status_input.currentText() if hasattr(self, 'status_input') else ""
-        photo_path = self.photo_frame.get_photo_path() if hasattr(self, 'photo_frame') else ""
+        so_dien_thoai = self.phone_input.text().strip()
+        dia_chi = self.address_input.text().strip()
+        ngay_nhap_hoc = self.enroll_date_input.date().toString("yyyy-MM-dd") if hasattr(self, 'enroll_date_input') else ""
+        trang_thai = self.status_input.currentText() if hasattr(self, 'status_input') else ""
+        duong_dan_anh = self.photo_frame.get_photo_path() if hasattr(self, 'photo_frame') else ""
 
         # Validate required fields
-        if not student_id:
+        if not ma_sinh_vien:
             QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập mã sinh viên!")
             return None
-        if not full_name:
+        if not ho_ten:
             QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập họ tên sinh viên!")
             return None
         if not email:
@@ -527,16 +527,16 @@ class StudentView(QWidget):
             return None
 
         return Student(
-            student_id=student_id,
-            full_name=full_name,
-            date_of_birth=date_of_birth,
-            gender=gender,
+            ma_sinh_vien=ma_sinh_vien,
+            ho_ten=ho_ten,
+            ngay_sinh=ngay_sinh,
+            gioi_tinh=gioi_tinh,
             email=email,
-            phone=phone,
-            address=address,
-            enrolled_date=enrolled_date,
-            status=status,
-            photo_path=photo_path
+            so_dien_thoai=so_dien_thoai,
+            dia_chi=dia_chi,
+            ngay_nhap_hoc=ngay_nhap_hoc,
+            trang_thai=trang_thai,
+            duong_dan_anh=duong_dan_anh
         )
 
     def add_student(self):
@@ -566,7 +566,7 @@ class StudentView(QWidget):
         else:
             QMessageBox.warning(
                 self, "Lỗi", 
-                f"Không thể thêm sinh viên. Mã số {student.student_id} có thể đã tồn tại."
+                f"Không thể thêm sinh viên. Mã số {student.ma_sinh_vien} có thể đã tồn tại."
             )
     
     def update_student(self):
@@ -588,7 +588,7 @@ class StudentView(QWidget):
         photo_path = self.photo_frame.get_photo_path()
         
         # Nếu không chọn ảnh mới, giữ nguyên ảnh cũ
-        use_new_photo = photo_path != "" and photo_path != self.selected_student.photo_path
+        use_new_photo = photo_path != "" and photo_path != self.selected_student.duong_dan_anh
         
         success = self.student_controller.update_student(
             student, 
@@ -617,14 +617,14 @@ class StudentView(QWidget):
         
         reply = QMessageBox.question(
             self, "Xác nhận xóa", 
-            f"Bạn có chắc muốn xóa sinh viên {self.selected_student.full_name}?",
+            f"Bạn có chắc muốn xóa sinh viên {self.selected_student.ho_ten}?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
             QMessageBox.StandardButton.No
         )
         
         if reply == QMessageBox.StandardButton.Yes:
             success = self.student_controller.delete_student(
-                self.selected_student.student_id,
+                self.selected_student.ma_sinh_vien,
                 current_user_id=self.current_user_id
             )
             if success:
@@ -790,8 +790,8 @@ class StudentView(QWidget):
             return False
         
         # Kiểm tra họ tên
-        full_name = self.name_input.text().strip()
-        if not full_name:
+        ho_ten = self.name_input.text().strip()
+        if not ho_ten:
             QMessageBox.warning(self, "Lỗi nhập liệu", "Vui lòng nhập họ tên sinh viên!")
             return False
         

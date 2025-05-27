@@ -117,7 +117,7 @@ class ConfigManager:
             return self.config.get("database", "path")
         except (configparser.NoSectionError, configparser.NoOptionError):
             # If not found, use default path and ensure directory exists
-            default_path = "data/student_db.db"
+            default_path = "data/app.db"
             os.makedirs(os.path.dirname(default_path), exist_ok=True)
             
             # Create the missing section

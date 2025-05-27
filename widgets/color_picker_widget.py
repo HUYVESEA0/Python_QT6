@@ -73,6 +73,7 @@ class ColorPickerWidget(QWidget):
     
     def __init__(self, initial_color="#007BFF", parent=None):
         super().__init__(parent)
+        self.setObjectName("colorPickerWidget")
         self.current_color = QColor(initial_color)
         self.preset_colors = [
             # Material Design colors

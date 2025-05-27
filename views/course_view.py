@@ -193,12 +193,12 @@ class CourseView(QWidget):
         
         for row, course in enumerate(courses):
             self.table.insertRow(row)
-            self.table.setItem(row, 0, QTableWidgetItem(course.course_id))
-            self.table.setItem(row, 1, QTableWidgetItem(course.course_name))
-            self.table.setItem(row, 2, QTableWidgetItem(str(course.credits)))
-            self.table.setItem(row, 3, QTableWidgetItem(course.instructor))
-            self.table.setItem(row, 4, QTableWidgetItem(course.description))
-            self.table.setItem(row, 5, QTableWidgetItem(str(course.max_students)))
+            self.table.setItem(row, 0, QTableWidgetItem(course.ma_khoa_hoc))
+            self.table.setItem(row, 1, QTableWidgetItem(course.ten_khoa_hoc))
+            self.table.setItem(row, 2, QTableWidgetItem(str(course.so_tin_chi)))
+            self.table.setItem(row, 3, QTableWidgetItem(course.giang_vien))
+            self.table.setItem(row, 4, QTableWidgetItem(course.mo_ta))
+            self.table.setItem(row, 5, QTableWidgetItem(str(course.so_luong_toi_da)))
     
     def populate_table_with_pagination(self):
         """Hiển thị dữ liệu trên trang hiện tại."""

@@ -16,17 +16,17 @@ class ImportManager:
         students = []
         for _, row in df.iterrows():
             student = Student(
-                student_id=str(row.get("student_id", "")).strip(),
-                full_name=str(row.get("full_name", "")).strip(),
-                date_of_birth=str(row.get("date_of_birth", "")).strip(),
-                gender=str(row.get("gender", "")).strip(),
+                ma_sinh_vien=str(row.get("student_id", "")).strip(),
+                ho_ten=str(row.get("full_name", "")).strip(),
+                ngay_sinh=str(row.get("date_of_birth", "")).strip(),
+                gioi_tinh=str(row.get("gender", "")).strip(),
                 email=str(row.get("email", "")).strip(),
-                phone=str(row.get("phone", "")).strip(),
-                address=str(row.get("address", "")).strip(),
-                enrolled_date=str(row.get("enrolled_date", "")).strip(),
-                status=str(row.get("status", "")).strip(),
-                photo_path=""
+                so_dien_thoai=str(row.get("phone", "")).strip(),
+                dia_chi=str(row.get("address", "")).strip(),
+                ngay_nhap_hoc=str(row.get("enrolled_date", "")).strip(),
+                trang_thai=str(row.get("status", "")).strip(),
+                duong_dan_anh=""
             )
-            if student.student_id and student.full_name:
+            if student.ma_sinh_vien and student.ho_ten:
                 students.append(student)
         return students

@@ -69,7 +69,7 @@ def migrate_env_to_config():
 
     # Cấu hình database
     if 'path' not in config['database']:
-        config['database']['path'] = env_data.get('DB_PATH', 'data/student_db.db')
+        config['database']['path'] = env_data.get('DB_PATH', 'data/app.db')
     if 'backup_on_exit' not in config['database']:
         config['database']['backup_on_exit'] = True
 

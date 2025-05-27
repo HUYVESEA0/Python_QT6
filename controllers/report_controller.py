@@ -292,10 +292,10 @@ class ReportController:
             list: Danh sách các hoạt động gần đây
         """
         query = """
-        SELECT a.*, u.username
-        FROM activity_log a
-        LEFT JOIN users u ON a.user_id = u.user_id
-        ORDER BY a.timestamp DESC
+        SELECT a.*, u.ten_dang_nhap
+        FROM nhat_ky_hoat_dong a
+        LEFT JOIN nguoi_dung u ON a.ma_nguoi_dung = u.ma_nguoi_dung
+        ORDER BY a.thoi_gian DESC
         LIMIT ?
         """
         result = self.db_manager.execute_query(query, (limit,))

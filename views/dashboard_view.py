@@ -12,9 +12,9 @@ import os
 try:
     # Thử import matplotlib
     import matplotlib
-    matplotlib.use('Qt5Agg')  # Sử dụng backend Qt5Agg
+    matplotlib.use('QtAgg')  # Sử dụng backend QtAgg (mới)
     from matplotlib.figure import Figure
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -193,10 +193,15 @@ class ChartWidget(QWidget):
             colors = ['#2979ff', '#00c853', '#ff6d00', '#d50000', '#6200ea', '#2962ff', '#00bfa5']
         
         # Vẽ biểu đồ tròn
-        wedges, texts, autotexts = ax.pie(
+        pie_result = ax.pie(
             sizes, labels=labels, autopct='%1.1f%%',
             shadow=False, startangle=90, colors=colors
         )
+        if len(pie_result) == 3:
+            wedges, texts, autotexts = pie_result
+        else:
+            wedges, texts = pie_result
+            autotexts = []
         
         # Thiết lập font cho văn bản
         for text in texts:
@@ -344,10 +349,15 @@ class ChartWidget(QWidget):
         colors = ['#2979ff', '#f06292', '#9c27b0']  # Nam, Nữ, Khác
         
         # Vẽ biểu đồ tròn
-        wedges, texts, autotexts = ax.pie(
+        pie_result = ax.pie(
             sizes, labels=labels, autopct='%1.1f%%',
             shadow=False, startangle=90, colors=colors
         )
+        if len(pie_result) == 3:
+            wedges, texts, autotexts = pie_result
+        else:
+            wedges, texts = pie_result
+            autotexts = []
         
         # Thiết lập font cho văn bản
         for text in texts:
@@ -636,12 +646,15 @@ class DashboardView(QWidget):
             stats = self.report_controller.get_student_course_statistics()
             
             # Cập nhật các card thống kê với animation
-            self.animate_value(self.total_students_card.value_label, str(stats.get('total_students', 0)))
-            self.animate_value(self.total_courses_card.value_label, str(stats.get('total_courses', 0)))
-            self.animate_value(self.total_enrollments_card.value_label, str(stats.get('total_enrollments', 0)))
-            
+            if hasattr(self.total_students_card, "value_label"):
+                self.animate_value(self.total_students_card.value_label, str(stats.get('total_students', 0)))
+            if hasattr(self.total_courses_card, "value_label"):
+                self.animate_value(self.total_courses_card.value_label, str(stats.get('total_courses', 0)))
+            if hasattr(self.total_enrollments_card, "value_label"):
+                self.animate_value(self.total_enrollments_card.value_label, str(stats.get('total_enrollments', 0)))
             avg_grade = stats.get('average_grade', 0)
-            self.animate_value(self.avg_grade_card.value_label, f"{avg_grade:.1f}")
+            if hasattr(self.avg_grade_card, "value_label"):
+                self.animate_value(self.avg_grade_card.value_label, f"{avg_grade:.1f}")
             
             # Hiển thị thông báo hữu ích nếu có ít dữ liệu
             if stats.get('total_students', 0) < 5:
@@ -657,18 +670,22 @@ class DashboardView(QWidget):
             top_courses = self.report_controller.get_top_courses_by_enrollment(limit=1)
             if top_courses:
                 course = top_courses[0]
-                self.max_enrollment_course_card.value_label.setText(
-                    f"{course['course_name']} ({course['student_count']} SV)"
-                )
+                if hasattr(self.max_enrollment_course_card, "value_label"):
+                    self.max_enrollment_course_card.value_label.setText(
+                        f"{course['course_name']} ({course['student_count']} SV)"
+                    )
             else:
-                self.max_enrollment_course_card.value_label.setText("Không có dữ liệu")
+                if hasattr(self.max_enrollment_course_card, "value_label"):
+                    self.max_enrollment_course_card.value_label.setText("Không có dữ liệu")
             
             # Lấy hoạt động gần đây
             recent_activities = self.report_controller.get_recent_activities(1)
             if recent_activities:
-                self.recent_activity_card.value_label.setText(recent_activities[0]['action_description'])
+                if hasattr(self.recent_activity_card, "value_label"):
+                    self.recent_activity_card.value_label.setText(recent_activities[0]['action_description'])
             else:
-                self.recent_activity_card.value_label.setText("Không có hoạt động")
+                if hasattr(self.recent_activity_card, "value_label"):
+                    self.recent_activity_card.value_label.setText("Không có hoạt động")
             
             # Vẽ các biểu đồ hiện có
             self.update_enrollment_chart()

@@ -11,7 +11,7 @@ def initialize_activity_data(db_manager):
         db_manager.ensure_tables_exist()
         
         # Check if activity table already has data
-        check_query = "SELECT COUNT(*) FROM activity_log"
+        check_query = "SELECT COUNT(*) FROM nguoi_dung"
         result = db_manager.execute_query(check_query)
         count = result[0][0] if result else 0
         

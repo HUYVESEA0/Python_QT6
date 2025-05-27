@@ -1,68 +1,49 @@
-class Course:
+class GhiDanh:
     """
-    Lớp đại diện cho một khóa học trong hệ thống.
+    Lớp đại diện cho một bản ghi đăng ký (ghi danh) trong hệ thống.
     """
-    def __init__(self, course_id="", course_name="", credits=0, 
-                 instructor="", description="", max_students=50):
+    def __init__(self, ma_ghi_danh=None, ma_sinh_vien="", ma_khoa_hoc="", ngay_ghi_danh="", diem=None, ho_ten=None, ten_khoa_hoc=None):
         """
-        Khởi tạo một đối tượng khóa học.
-        
+        Khởi tạo một đối tượng ghi danh.
         Args:
-            course_id (str): Mã khóa học
-            course_name (str): Tên khóa học
-            credits (int): Số tín chỉ
-            instructor (str): Giảng viên
-            description (str): Mô tả
-            max_students (int): Số lượng sinh viên tối đa
+            ma_ghi_danh (int): Mã ghi danh (PK)
+            ma_sinh_vien (str): Mã sinh viên
+            ma_khoa_hoc (str): Mã khóa học
+            ngay_ghi_danh (str): Ngày ghi danh (YYYY-MM-DD)
+            diem (float): Điểm số
+            ho_ten (str, optional): Họ tên sinh viên (join)
+            ten_khoa_hoc (str, optional): Tên khóa học (join)
         """
-        self.course_id = course_id
-        self.course_name = course_name
-        self.credits = credits
-        self.instructor = instructor
-        self.description = description
-        self.max_students = max_students
-    
+        self.ma_ghi_danh = ma_ghi_danh
+        self.ma_sinh_vien = ma_sinh_vien
+        self.ma_khoa_hoc = ma_khoa_hoc
+        self.ngay_ghi_danh = ngay_ghi_danh
+        self.diem = diem
+        self.ho_ten = ho_ten
+        self.ten_khoa_hoc = ten_khoa_hoc
+
     @classmethod
     def from_dict(cls, data):
-        """
-        Tạo đối tượng khóa học từ dictionary.
-        
-        Args:
-            data (dict): Dictionary chứa dữ liệu khóa học
-            
-        Returns:
-            Course: Đối tượng khóa học mới
-        """
         return cls(
-            course_id=data.get('course_id', ''),
-            course_name=data.get('course_name', ''),
-            credits=data.get('credits', 0),
-            instructor=data.get('instructor', ''),
-            description=data.get('description', ''),
-            max_students=data.get('max_students', 50)
+            ma_ghi_danh=data.get('ma_ghi_danh'),
+            ma_sinh_vien=data.get('ma_sinh_vien', ''),
+            ma_khoa_hoc=data.get('ma_khoa_hoc', ''),
+            ngay_ghi_danh=data.get('ngay_ghi_danh', ''),
+            diem=data.get('diem'),
+            ho_ten=data.get('ho_ten'),
+            ten_khoa_hoc=data.get('ten_khoa_hoc')
         )
-    
+
     def to_dict(self):
-        """
-        Chuyển đổi đối tượng khóa học thành dictionary.
-        
-        Returns:
-            dict: Dictionary chứa thông tin khóa học
-        """
         return {
-            'course_id': self.course_id,
-            'course_name': self.course_name,
-            'credits': self.credits,
-            'instructor': self.instructor,
-            'description': self.description,
-            'max_students': self.max_students
+            'ma_ghi_danh': self.ma_ghi_danh,
+            'ma_sinh_vien': self.ma_sinh_vien,
+            'ma_khoa_hoc': self.ma_khoa_hoc,
+            'ngay_ghi_danh': self.ngay_ghi_danh,
+            'diem': self.diem,
+            'ho_ten': self.ho_ten,
+            'ten_khoa_hoc': self.ten_khoa_hoc
         }
-    
+
     def __str__(self):
-        """
-        Định dạng chuỗi đại diện cho khóa học.
-        
-        Returns:
-            str: Chuỗi thông tin khóa học
-        """
-        return f"{self.course_id} - {self.course_name} ({self.credits} tín chỉ)"
+        return f"{self.ma_ghi_danh}: {self.ma_sinh_vien} - {self.ma_khoa_hoc} ({self.diem})"

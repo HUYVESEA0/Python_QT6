@@ -16,6 +16,7 @@ class LoginDialog(QDialog):
     
     def __init__(self, user_controller, theme_manager=None):
         super().__init__()
+        self.setObjectName("loginDialog")
         self.user_controller = user_controller
         self.theme_manager = theme_manager
         self.user = None

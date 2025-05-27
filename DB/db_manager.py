@@ -104,87 +104,77 @@ class DatabaseManager:
             self.connect()
 
     def create_tables(self):
-        """Tạo các bảng trong cơ sở dữ liệu nếu chưa tồn tại."""
+        """Tạo các bảng trong cơ sở dữ liệu nếu chưa tồn tại (tên tiếng Việt)."""
         self._ensure_connection()
         try:
             # Bảng Sinh viên
             self.cursor.execute('''
-
-            CREATE TABLE IF NOT EXISTS students (
-                student_id TEXT PRIMARY KEY,
-                full_name TEXT NOT NULL,
-                date_of_birth TEXT,
-                gender TEXT,
+            CREATE TABLE IF NOT EXISTS sinh_vien (
+                ma_sinh_vien TEXT PRIMARY KEY,
+                ho_ten TEXT NOT NULL,
+                ngay_sinh TEXT,
+                gioi_tinh TEXT,
                 email TEXT,
-                phone TEXT,
-                address TEXT,
-                enrolled_date TEXT,
-                status TEXT,
-                photo_path TEXT
+                so_dien_thoai TEXT,
+                dia_chi TEXT,
+                ngay_nhap_hoc TEXT,
+                trang_thai TEXT,
+                duong_dan_anh TEXT
             )
             ''')
-            
             # Bảng Khóa học
             self.cursor.execute('''
-
-            CREATE TABLE IF NOT EXISTS courses (
-                course_id TEXT PRIMARY KEY,
-                course_name TEXT NOT NULL,
-                credits INTEGER,
-                instructor TEXT,
-                description TEXT,
-                max_students INTEGER
+            CREATE TABLE IF NOT EXISTS khoa_hoc (
+                ma_khoa_hoc TEXT PRIMARY KEY,
+                ten_khoa_hoc TEXT NOT NULL,
+                so_tin_chi INTEGER,
+                giang_vien TEXT,
+                mo_ta TEXT,
+                so_luong_toi_da INTEGER
             )
             ''')
-            
-            # Bảng Đăng ký khóa học
+            # Bảng Ghi danh (Đăng ký khóa học)
             self.cursor.execute('''
-
-            CREATE TABLE IF NOT EXISTS enrollments (
-                enrollment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                student_id TEXT,
-                course_id TEXT,
-                enrollment_date TEXT,
-                grade REAL,
-                FOREIGN KEY (student_id) REFERENCES students (student_id) ON DELETE CASCADE,
-                FOREIGN KEY (course_id) REFERENCES courses (course_id) ON DELETE CASCADE,
-                UNIQUE(student_id, course_id)
+            CREATE TABLE IF NOT EXISTS ghi_danh (
+                ma_ghi_danh INTEGER PRIMARY KEY AUTOINCREMENT,
+                ma_sinh_vien TEXT,
+                ma_khoa_hoc TEXT,
+                ngay_ghi_danh TEXT,
+                diem REAL,
+                FOREIGN KEY (ma_sinh_vien) REFERENCES sinh_vien (ma_sinh_vien) ON DELETE CASCADE,
+                FOREIGN KEY (ma_khoa_hoc) REFERENCES khoa_hoc (ma_khoa_hoc) ON DELETE CASCADE,
+                UNIQUE(ma_sinh_vien, ma_khoa_hoc)
             )
             ''')
-            
-            # Bảng Người dùng (cho đăng nhập)
+            # Bảng Người dùng
             self.cursor.execute('''
-
-            CREATE TABLE IF NOT EXISTS users (
-                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                full_name TEXT,
+            CREATE TABLE IF NOT EXISTS nguoi_dung (
+                ma_nguoi_dung INTEGER PRIMARY KEY AUTOINCREMENT,
+                ten_dang_nhap TEXT UNIQUE NOT NULL,
+                mat_khau_ma_hoa TEXT NOT NULL,
+                ho_ten TEXT,
                 email TEXT,
-                role TEXT,
-                is_active INTEGER DEFAULT 1,
-                created_date TEXT,
-                last_login TEXT
+                vai_tro TEXT,
+                kich_hoat INTEGER DEFAULT 1,
+                ngay_tao TEXT,
+                lan_dang_nhap_cuoi TEXT
             )
             ''')
-            
             # Bảng nhật ký hoạt động
             self.cursor.execute('''
-
-            CREATE TABLE IF NOT EXISTS activity_log (
-                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                action_type TEXT NOT NULL,
-                action_description TEXT,
-                entity_type TEXT,
-                entity_id TEXT,
-                timestamp TEXT NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (user_id)
+            CREATE TABLE IF NOT EXISTS nhat_ky_hoat_dong (
+                ma_nhat_ky INTEGER PRIMARY KEY AUTOINCREMENT,
+                ma_nguoi_dung INTEGER,
+                loai_hoat_dong TEXT NOT NULL,
+                mo_ta_hoat_dong TEXT,
+                loai_doi_tuong TEXT,
+                ma_doi_tuong TEXT,
+                thoi_gian TEXT NOT NULL,
+                FOREIGN KEY (ma_nguoi_dung) REFERENCES nguoi_dung(ma_nguoi_dung)
             )
             ''')
-            
             self.commit()
-            logging.info("Đã tạo các bảng trong cơ sở dữ liệu")
+            logging.info("Đã tạo các bảng tiếng Việt trong cơ sở dữ liệu")
         except sqlite3.Error as e:
             logging.error(f"Lỗi khi tạo bảng: {e}")
 
@@ -320,36 +310,36 @@ class DatabaseManager:
         Tạo tài khoản admin mặc định nếu chưa tồn tại.
         """
         try:
-            query = "SELECT COUNT(*) as count FROM users WHERE role = 'admin'"
+            query = "SELECT COUNT(*) as count FROM nguoi_dung WHERE vai_tro = 'admin'"
             result = self.execute_query(query)
             
             if result and result[0]['count'] == 0:
                 # Không có tài khoản admin nào, tạo tài khoản mặc định
                 admin_password = "admin123"  # Mật khẩu mặc định
-                password_hash = self.hash_password(admin_password)
+                mat_khau_ma_hoa = self.hash_password(admin_password)
                 
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
                 insert_query = """
-                INSERT INTO users (username, password_hash, full_name, email, role, is_active, created_date)
+                INSERT INTO nguoi_dung (ten_dang_nhap, mat_khau_ma_hoa, ho_ten, email, vai_tro, kich_hoat, ngay_tao)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """
                 
                 params = (
-                    "admin",  # username
-                    password_hash,  # password_hash
-                    "Administrator",  # full_name
+                    "admin",  # ten_dang_nhap
+                    mat_khau_ma_hoa,  # mat_khau_ma_hoa
+                    "Administrator",  # ho_ten
                     "admin@example.com",  # email
-                    "admin",  # role
-                    1,  # is_active
-                    current_time  # created_date
+                    "admin",  # vai_tro
+                    1,  # kich_hoat
+                    current_time  # ngay_tao
                 )
                 
                 self.cursor.execute(insert_query, params)
                 self.commit()
                 
                 logging.info("Đã tạo tài khoản admin mặc định")
-        except sqlite3.Error as e:
+        except Exception as e:
             logging.error(f"Lỗi khi tạo tài khoản admin mặc định: {e}")
     
     def save_student_photo(self, student_id, photo_file_path):
@@ -507,7 +497,7 @@ class DatabaseManager:
             a.timestamp, 
             a.user_id,
             u.username, 
-            u.full_name,
+            u.ho_ten,
             a.action_type, 
             a.action_description, 
             a.entity_type, 
@@ -628,28 +618,8 @@ class DatabaseManager:
         """Ensure all required tables exist in the database."""
         self._ensure_connection()
         try:
-            # Check if tables exist by querying sqlite_master
-            tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
-            existing_tables = self.execute_query(tables_query)
-            existing_table_names = [table[0] for table in existing_tables] if existing_tables else []
-            
-            # Create activity_log table specifically if it's missing
-            if 'activity_log' not in existing_table_names:
-                activity_log_query = """
-                CREATE TABLE IF NOT EXISTS activity_log (
-                    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
-                    user_id INTEGER,
-                    action_type TEXT,
-                    action_description TEXT,
-                    entity_type TEXT,
-                    entity_id TEXT,
-                    FOREIGN KEY (user_id) REFERENCES users(user_id)
-                )
-                """
-                self.execute_query(activity_log_query)
-                logging.info("Created activity_log table")
-                
+            # Tạo lại tất cả các bảng cần thiết nếu chưa có
+            self.create_tables()
             return True
         except sqlite3.Error as e:
             logging.error(f"Error ensuring tables exist: {e}")

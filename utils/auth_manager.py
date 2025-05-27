@@ -35,9 +35,9 @@ class AuthManager:
         """
         query = """
         SELECT 
-            user_id, username, password_hash, full_name, email, role, is_active 
-        FROM users 
-        WHERE username = ? AND is_active = 1
+            ma_nguoi_dung, ten_dang_nhap, mat_khau_ma_hoa, ho_ten, email, vai_tro, kich_hoat 
+        FROM nguoi_dung 
+        WHERE ten_dang_nhap = ? AND kich_hoat = 1
         """
         
         result = self.db_manager.execute_query(query, (username,))
@@ -49,20 +49,20 @@ class AuthManager:
         user_data = result[0]
         
         # Kiểm tra mật khẩu
-        if not self.db_manager.verify_password(password, user_data['password_hash']):
+        if not self.db_manager.verify_password(password, user_data['mat_khau_ma_hoa']):
             logging.warning(f"Đăng nhập thất bại: Mật khẩu không đúng cho người dùng '{username}'")
             return None
         
         # Cập nhật thời gian đăng nhập cuối
-        self._update_last_login(user_data['user_id'])
+        self._update_last_login(user_data['ma_nguoi_dung'])
         
         # Ghi nhật ký đăng nhập
         self.db_manager.log_activity(
-            user_data['user_id'],
+            user_data['ma_nguoi_dung'],
             "LOGIN",
             f"Đăng nhập thành công: {username}",
-            "User",
-            user_data['user_id']
+            "NguoiDung",
+            user_data['ma_nguoi_dung']
         )
         
         return user_data
@@ -121,7 +121,7 @@ class AuthManager:
             # Kiểm tra người dùng có còn tồn tại và active
             query = """
             SELECT user_id, username, role, is_active 
-            FROM users 
+            FROM nguoi_dung 
             WHERE user_id = ? AND is_active = 1
             """
             
@@ -141,25 +141,25 @@ class AuthManager:
             logging.error(f"Lỗi khi xác minh token: {e}")
             return None
     
-    def has_permission(self, user_role, required_role):
+    def has_permission(self, user, required_role: str) -> bool:
         """
-        Kiểm tra người dùng có quyền truy cập không
-        
+        Kiểm tra quyền của người dùng dựa trên vai trò (ưu tiên User.has_permission nếu có).
         Args:
-            user_role (str): Vai trò của người dùng
+            user (User hoặc dict): Đối tượng người dùng
             required_role (str): Vai trò yêu cầu
-            
         Returns:
             bool: True nếu có quyền, False nếu không
         """
+        if hasattr(user, 'has_permission'):
+            return user.has_permission(required_role)
+        # Fallback nếu user là dict hoặc object khác
         role_hierarchy = {
             'admin': 100,
             'manager': 50,
             'teacher': 30,
             'user': 10
         }
-        
+        user_role = getattr(user, 'vai_tro', None) or (user.get('vai_tro') if isinstance(user, dict) else None)
         user_level = role_hierarchy.get(user_role, 0)
-        required_level = role_hierarchy.get(required_role, 100)  # Mặc định cao nhất nếu không tìm thấy
-        
+        required_level = role_hierarchy.get(required_role, 100)
         return user_level >= required_level

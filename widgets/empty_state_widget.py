@@ -15,6 +15,7 @@ class EmptyStateWidget(QWidget):
                  icon_path=None, 
                  parent=None):
         super().__init__(parent)
+        self.setObjectName("emptyStateWidget")
         self.message = message
         self.action_text = action_text
         self.icon_path = icon_path

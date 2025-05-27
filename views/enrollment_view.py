@@ -112,11 +112,13 @@ class EnrollmentView(QWidget):
         ])
         
         # Cải thiện hiển thị bằng cách điều chỉnh độ rộng cột phù hợp
-        self.enrollment_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # Mã đăng ký - ngắn gọn
-        self.enrollment_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # Sinh viên - có thể dài
-        self.enrollment_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch) # Khóa học - có thể dài
-        self.enrollment_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Ngày - độ dài cố định
-        self.enrollment_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Điểm - ngắn gọn
+        header = self.enrollment_table.horizontalHeader()
+        if header is not None:
+            header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # Mã đăng ký - ngắn gọn
+            header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # Sinh viên - có thể dài
+            header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch) # Khóa học - có thể dài
+            header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Ngày - độ dài cố định
+            header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Điểm - ngắn gọn
         
         self.enrollment_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.enrollment_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -128,9 +130,12 @@ class EnrollmentView(QWidget):
         main_layout.addLayout(search_layout)
         main_layout.addWidget(QLabel("Danh sách đăng ký:"))
         main_layout.addWidget(self.enrollment_table)
-        
+        # Thêm label tổng số đăng ký
+        self.enrollment_count_label = QLabel("Tổng số đăng ký: 0")
+        main_layout.addWidget(self.enrollment_count_label)
+
         self.setLayout(main_layout)
-        
+
         # Tải dữ liệu
         self.load_students()
         self.load_courses()
@@ -141,27 +146,27 @@ class EnrollmentView(QWidget):
         self.student_combo.clear()
         students = self.student_controller.get_all_students()
         for student in students:
-            display_text = f"{student.student_id} - {student.full_name}"
-            # Lưu ID vào userData
-            self.student_combo.addItem(display_text, student.student_id)
+            display_text = f"{student.ma_sinh_vien} - {student.ho_ten}"
+            # Lưu mã sinh viên vào userData
+            self.student_combo.addItem(display_text, student.ma_sinh_vien)
     
     def load_courses(self):
         """Tải danh sách khóa học cho combo box."""
         self.course_combo.clear()
         courses = self.course_controller.get_all_courses()
         for course in courses:
-            display_text = f"{course.course_id} - {course.course_name}"
-            # Lưu ID vào userData
-            self.course_combo.addItem(display_text, course.course_id)
+            display_text = f"{course.ma_khoa_hoc} - {course.ten_khoa_hoc}"
+            # Lưu mã khóa học vào userData
+            self.course_combo.addItem(display_text, course.ma_khoa_hoc)
     
     def load_enrollments(self):
         """Tải danh sách đăng ký khóa học và hiển thị lên bảng."""
         query = """
-        SELECT e.enrollment_id, e.student_id, s.full_name, e.course_id, c.course_name, e.grade
-        FROM enrollments e
-        JOIN students s ON e.student_id = s.student_id
-        JOIN courses c ON e.course_id = c.course_id
-        ORDER BY e.student_id, e.course_id
+        SELECT e.ma_ghi_danh, e.ma_sinh_vien, s.ho_ten, e.ma_khoa_hoc, c.ten_khoa_hoc, e.ngay_ghi_danh, e.diem
+        FROM ghi_danh e
+        JOIN sinh_vien s ON e.ma_sinh_vien = s.ma_sinh_vien
+        JOIN khoa_hoc c ON e.ma_khoa_hoc = c.ma_khoa_hoc
+        ORDER BY e.ma_sinh_vien, e.ma_khoa_hoc
         """
         enrollments = self.db_manager.execute_query(query)
         self.populate_table(enrollments)
@@ -177,33 +182,34 @@ class EnrollmentView(QWidget):
         
         for row, enrollment in enumerate(enrollments):
             self.enrollment_table.insertRow(row)
-            self.enrollment_table.setItem(row, 0, QTableWidgetItem(enrollment['student_id']))
-            self.enrollment_table.setItem(row, 1, QTableWidgetItem(enrollment['full_name']))
-            self.enrollment_table.setItem(row, 2, QTableWidgetItem(enrollment['course_id']))
-            self.enrollment_table.setItem(row, 3, QTableWidgetItem(enrollment['course_name']))
-            
+            item_ma_ghi_danh = QTableWidgetItem(str(enrollment['ma_ghi_danh']))
+            self.enrollment_table.setItem(row, 0, item_ma_ghi_danh)
+            self.enrollment_table.setItem(row, 1, QTableWidgetItem(enrollment['ma_sinh_vien']))
+            self.enrollment_table.setItem(row, 2, QTableWidgetItem(enrollment['ma_khoa_hoc']))
+            self.enrollment_table.setItem(row, 3, QTableWidgetItem(enrollment['ngay_ghi_danh']))
             # Hiển thị điểm nếu có
-            grade_text = str(enrollment['grade']) if enrollment['grade'] is not None else "Chưa có"
-            self.enrollment_table.setItem(row, 4, QTableWidgetItem(grade_text))
-            
+            diem_text = str(enrollment['diem']) if enrollment['diem'] is not None else "Chưa có"
+            self.enrollment_table.setItem(row, 4, QTableWidgetItem(diem_text))
             # Lưu ID đăng ký vào item để sử dụng sau này
-            self.enrollment_table.item(row, 0).setData(Qt.ItemDataRole.UserRole, enrollment['enrollment_id'])
+            if item_ma_ghi_danh is not None:
+                item_ma_ghi_danh.setData(Qt.ItemDataRole.UserRole, enrollment['ma_ghi_danh'])
     
     def on_table_clicked(self):
         """Xử lý sự kiện khi người dùng chọn một dòng trong bảng."""
         selected_row = self.enrollment_table.currentRow()
         if selected_row >= 0:
-            enrollment_id = self.enrollment_table.item(selected_row, 0).data(Qt.ItemDataRole.UserRole)
-            student_id = self.enrollment_table.item(selected_row, 0).text()
-            course_id = self.enrollment_table.item(selected_row, 2).text()
-            
+            item_ma_ghi_danh = self.enrollment_table.item(selected_row, 0)
+            item_ma_sinh_vien = self.enrollment_table.item(selected_row, 1)
+            item_ma_khoa_hoc = self.enrollment_table.item(selected_row, 2)
+            ma_ghi_danh = item_ma_ghi_danh.data(Qt.ItemDataRole.UserRole) if item_ma_ghi_danh is not None else None
+            ma_sinh_vien = item_ma_sinh_vien.text() if item_ma_sinh_vien is not None else ""
+            ma_khoa_hoc = item_ma_khoa_hoc.text() if item_ma_khoa_hoc is not None else ""
             # Lưu thông tin đăng ký đã chọn
             self.selected_enrollment = {
-                'enrollment_id': enrollment_id,
-                'student_id': student_id,
-                'course_id': course_id
+                'ma_ghi_danh': ma_ghi_danh,
+                'ma_sinh_vien': ma_sinh_vien,
+                'ma_khoa_hoc': ma_khoa_hoc
             }
-            
             # Hiển thị thông tin lên form
             self.display_enrollment(self.selected_enrollment)
     
@@ -218,35 +224,31 @@ class EnrollmentView(QWidget):
             return
         
         # Tìm và chọn sinh viên trong combo
-        student_index = self.student_combo.findData(enrollment['student_id'])
+        student_index = self.student_combo.findData(enrollment['ma_sinh_vien'])
         if student_index >= 0:
             self.student_combo.setCurrentIndex(student_index)
-        
         # Tìm và chọn khóa học trong combo
-        course_index = self.course_combo.findData(enrollment['course_id'])
+        course_index = self.course_combo.findData(enrollment['ma_khoa_hoc'])
         if course_index >= 0:
             self.course_combo.setCurrentIndex(course_index)
-        
         # Lấy thông tin chi tiết từ cơ sở dữ liệu
         query = """
-        SELECT enrollment_date, grade
-        FROM enrollments
-        WHERE enrollment_id = ?
+        SELECT ngay_ghi_danh, diem
+        FROM ghi_danh
+        WHERE ma_ghi_danh = ?
         """
-        result = self.db_manager.execute_query(query, (enrollment['enrollment_id'],))
-        
+        result = self.db_manager.execute_query(query, (enrollment['ma_ghi_danh'],))
         if result:
             # Hiển thị ngày đăng ký
-            if result[0]['enrollment_date']:
+            if result[0]['ngay_ghi_danh']:
                 try:
-                    date = QDate.fromString(result[0]['enrollment_date'], "yyyy-MM-dd")
+                    date = QDate.fromString(result[0]['ngay_ghi_danh'], "yyyy-MM-dd")
                     self.enrollment_date.setDate(date)
                 except:
                     self.enrollment_date.setDate(QDate.currentDate())
-            
             # Hiển thị điểm
-            if result[0]['grade'] is not None:
-                self.grade_input.setValue(result[0]['grade'])
+            if result[0]['diem'] is not None:
+                self.grade_input.setValue(result[0]['diem'])
             else:
                 self.grade_input.setValue(0)
                 self.grade_input.setSpecialValueText("Chưa có điểm")
@@ -257,34 +259,27 @@ class EnrollmentView(QWidget):
             QMessageBox.warning(self, "Lỗi", "Vui lòng chọn sinh viên và khóa học!")
             return
         
-        student_id = self.student_combo.currentData()
-        course_id = self.course_combo.currentData()
-        enrollment_date = self.enrollment_date.date().toString("yyyy-MM-dd")
-        
+        ma_sinh_vien = self.student_combo.currentData()
+        ma_khoa_hoc = self.course_combo.currentData()
+        ngay_ghi_danh = self.enrollment_date.date().toString("yyyy-MM-dd")
         # Kiểm tra xem đã đăng ký chưa
-        query = "SELECT * FROM enrollments WHERE student_id = ? AND course_id = ?"
-        result = self.db_manager.execute_query(query, (student_id, course_id))
-        
+        query = "SELECT * FROM ghi_danh WHERE ma_sinh_vien = ? AND ma_khoa_hoc = ?"
+        result = self.db_manager.execute_query(query, (ma_sinh_vien, ma_khoa_hoc))
         if result:
             QMessageBox.warning(self, "Lỗi", "Sinh viên này đã đăng ký khóa học này rồi!")
             return
-        
         # Kiểm tra số lượng sinh viên đã đăng ký khóa học
-        enrolled_count = self.course_controller.get_enrollment_count(course_id)
-        course = self.course_controller.get_course_by_id(course_id)
-        
-        if enrolled_count >= course.max_students:
+        enrolled_count = self.course_controller.get_enrollment_count(ma_khoa_hoc)
+        course = self.course_controller.get_course_by_id(ma_khoa_hoc)
+        if enrolled_count >= course.so_luong_toi_da:
             QMessageBox.warning(self, "Lỗi", "Khóa học này đã đạt số lượng sinh viên tối đa!")
             return
-        
         # Thêm đăng ký mới
         query = """
-        INSERT INTO enrollments (student_id, course_id, enrollment_date)
+        INSERT INTO ghi_danh (ma_sinh_vien, ma_khoa_hoc, ngay_ghi_danh)
         VALUES (?, ?, ?)
         """
-        
-        result = self.db_manager.execute_insert(query, (student_id, course_id, enrollment_date))
-        
+        result = self.db_manager.execute_insert(query, (ma_sinh_vien, ma_khoa_hoc, ngay_ghi_danh))
         if result is not None:
             QMessageBox.information(self, "Thành công", "Đăng ký khóa học thành công!")
             self.clear_form()
@@ -298,13 +293,11 @@ class EnrollmentView(QWidget):
             QMessageBox.warning(self, "Cảnh báo", "Vui lòng chọn một đăng ký từ danh sách!")
             return
         
-        grade = self.grade_input.value()
-        if grade == 0 and self.grade_input.specialValueText() == "Chưa có điểm":
-            grade = None
-        
-        query = "UPDATE enrollments SET grade = ? WHERE enrollment_id = ?"
-        rows_affected = self.db_manager.execute_update(query, (grade, self.selected_enrollment['enrollment_id']))
-        
+        diem = self.grade_input.value()
+        if diem == 0 and self.grade_input.specialValueText() == "Chưa có điểm":
+            diem = None
+        query = "UPDATE ghi_danh SET diem = ? WHERE ma_ghi_danh = ?"
+        rows_affected = self.db_manager.execute_update(query, (diem, self.selected_enrollment['ma_ghi_danh']))
         if rows_affected > 0:
             QMessageBox.information(self, "Thành công", "Đã cập nhật điểm số!")
             self.load_enrollments()
@@ -325,9 +318,8 @@ class EnrollmentView(QWidget):
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            query = "DELETE FROM enrollments WHERE enrollment_id = ?"
-            rows_affected = self.db_manager.execute_delete(query, (self.selected_enrollment['enrollment_id'],))
-            
+            query = "DELETE FROM ghi_danh WHERE ma_ghi_danh = ?"
+            rows_affected = self.db_manager.execute_delete(query, (self.selected_enrollment['ma_ghi_danh'],))
             if rows_affected > 0:
                 QMessageBox.information(self, "Thành công", "Đã hủy đăng ký khóa học!")
                 self.clear_form()
@@ -350,20 +342,17 @@ class EnrollmentView(QWidget):
         if not keyword:
             self.load_enrollments()
             return
-        
         keyword = f"%{keyword}%"
         query = """
-        SELECT e.enrollment_id, e.student_id, s.full_name, e.course_id, c.course_name, e.grade
-        FROM enrollments e
-        JOIN students s ON e.student_id = s.student_id
-        JOIN courses c ON e.course_id = c.course_id
-        WHERE e.student_id LIKE ? OR s.full_name LIKE ? OR e.course_id LIKE ? OR c.course_name LIKE ?
-        ORDER BY e.student_id, e.course_id
+        SELECT e.ma_ghi_danh, e.ma_sinh_vien, s.ho_ten, e.ma_khoa_hoc, c.ten_khoa_hoc, e.ngay_ghi_danh, e.diem
+        FROM ghi_danh e
+        JOIN sinh_vien s ON e.ma_sinh_vien = s.ma_sinh_vien
+        JOIN khoa_hoc c ON e.ma_khoa_hoc = c.ma_khoa_hoc
+        WHERE e.ma_sinh_vien LIKE ? OR s.ho_ten LIKE ? OR e.ma_khoa_hoc LIKE ? OR c.ten_khoa_hoc LIKE ?
+        ORDER BY e.ma_sinh_vien, e.ma_khoa_hoc
         """
-        
         enrollments = self.db_manager.execute_query(query, (keyword, keyword, keyword, keyword))
         self.populate_table(enrollments)
-        
         if not enrollments:
             QMessageBox.information(self, "Kết quả tìm kiếm", "Không tìm thấy kết quả nào!")
     
@@ -380,7 +369,9 @@ class EnrollmentView(QWidget):
         
         # Lưu vị trí cuộn hiện tại
         scrollbar = self.enrollment_table.verticalScrollBar()
-        scroll_position = scrollbar.value()
+        scroll_position = 0
+        if scrollbar is not None:
+            scroll_position = scrollbar.value()
         
         # Xóa tất cả các dòng
         self.enrollment_table.setRowCount(0)
@@ -433,7 +424,8 @@ class EnrollmentView(QWidget):
         # Khôi phục tính năng cập nhật giao diện và vị trí cuộn
         self.enrollment_table.setSortingEnabled(True)
         self.enrollment_table.setUpdatesEnabled(True)
-        scrollbar.setValue(scroll_position)
+        if scrollbar is not None:
+            scrollbar.setValue(scroll_position)
         
         # Cập nhật tổng số đăng ký
         self.update_enrollment_count()

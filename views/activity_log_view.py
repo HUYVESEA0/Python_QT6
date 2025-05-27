@@ -15,6 +15,7 @@ class ActivityLogView(QWidget):
     """
     def __init__(self, db_manager):
         super().__init__()
+        self.setObjectName("activityLogView")
         self.db_manager = db_manager
         self.init_ui()
     
